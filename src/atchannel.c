@@ -31,6 +31,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define LOG_NDEBUG 0
 #define LOG_TAG "AT"
@@ -154,17 +155,17 @@ static const char * s_finalResponsesError[] = {
     "NO ANSWER",
     "NO DIALTONE",
 };
-static int isFinalResponseError(const char *line)
+static bool isFinalResponseError(const char *line)
 {
     size_t i;
 
     for (i = 0 ; i < NUM_ELEMS(s_finalResponsesError) ; i++) {
         if (strStartsWith(line, s_finalResponsesError[i])) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 /**
@@ -176,17 +177,17 @@ static const char * s_finalResponsesSuccess[] = {
     "OK",
     "CONNECT"       /* some stacks start up data on another channel */
 };
-static int isFinalResponseSuccess(const char *line)
+static bool isFinalResponseSuccess(const char *line)
 {
     size_t i;
 
     for (i = 0 ; i < NUM_ELEMS(s_finalResponsesSuccess) ; i++) {
         if (strStartsWith(line, s_finalResponsesSuccess[i])) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 #if 0
@@ -195,7 +196,7 @@ static int isFinalResponseSuccess(const char *line)
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
-static int isFinalResponse(const char *line)
+static bool isFinalResponse(const char *line)
 {
     return isFinalResponseSuccess(line) || isFinalResponseError(line);
 }
