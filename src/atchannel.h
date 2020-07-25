@@ -32,16 +32,19 @@ extern void  AT_DUMP(const char* prefix, const char*  buff, int  len);
 #define  AT_DUMP(prefix,buff,len)  do{}while(0)
 #endif
 
-#define AT_ERROR_GENERIC          (-1)
-#define AT_ERROR_COMMAND_PENDING  (-2)
-#define AT_ERROR_CHANNEL_CLOSED   (-3)
-#define AT_ERROR_TIMEOUT          (-4)
-#define AT_ERROR_INVALID_THREAD   (-5) /* AT commands may not be issued from
-                                          reader thread (or unsolicited response
-                                          callback */
-#define AT_ERROR_INVALID_RESPONSE (-6) /* eg an at_send_command_singleline that
-                                          did not get back an intermediate
-                                          response */
+typedef enum {
+    AT_SUCCESS =                 0,
+    AT_ERROR_GENERIC =          -1,
+    AT_ERROR_COMMAND_PENDING =  -2,
+    AT_ERROR_CHANNEL_CLOSED =   -3,
+    AT_ERROR_TIMEOUT =          -4,
+    AT_ERROR_INVALID_THREAD =   -5, /* AT commands may not be issued from
+                                       reader thread (or unsolicited response
+                                       callback */
+    AT_ERROR_INVALID_RESPONSE = -6, /* eg an at_send_command_singleline that
+                                       did not get back an intermediate
+                                       response */
+} ATReturn;
 
 
 typedef enum {
@@ -74,7 +77,7 @@ typedef struct {
  */
 typedef void (*ATUnsolHandler)(const char *s, const char *sms_pdu);
 
-int at_open(int fd, ATUnsolHandler h);
+ATReturn at_open(int fd, ATUnsolHandler h);
 void at_close(void);
 
 /* This callback is invoked on the command thread.
@@ -88,23 +91,23 @@ void at_set_on_timeout(void (*onTimeout)(void));
    channel is already closed */
 void at_set_on_reader_closed(void (*onClose)(void));
 
-int at_send_command_singleline (const char *command,
+ATReturn at_send_command_singleline (const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse);
 
-int at_send_command_numeric (const char *command,
+ATReturn at_send_command_numeric (const char *command,
                                  ATResponse **pp_outResponse);
 
-int at_send_command_multiline (const char *command,
+ATReturn at_send_command_multiline (const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse);
 
 
-int at_handshake(void);
+ATReturn at_handshake(void);
 
-int at_send_command (const char *command, ATResponse **pp_outResponse);
+ATReturn at_send_command (const char *command, ATResponse **pp_outResponse);
 
-int at_send_command_sms (const char *command, const char *pdu,
+ATReturn at_send_command_sms (const char *command, const char *pdu,
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
 

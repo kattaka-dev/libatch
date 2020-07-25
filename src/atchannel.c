@@ -569,7 +569,7 @@ static void clearPendingCommand(void)
  * Starts AT handler on stream "fd'
  * returns 0 on success, -1 on error
  */
-int at_open(int fd, ATUnsolHandler h)
+ATReturn  at_open(int fd, ATUnsolHandler h)
 {
     int ret;
     pthread_attr_t attr;
@@ -589,11 +589,11 @@ int at_open(int fd, ATUnsolHandler h)
 
     if (ret < 0) {
         perror ("pthread_create");
-        return -1;
+        return AT_ERROR_GENERIC;
     }
 
 
-    return 0;
+    return AT_SUCCESS;
 }
 
 /* FIXME is it ok to call this from the reader and the command thread? */
@@ -771,7 +771,7 @@ static int at_send_command_full (const char *command, ATCommandType type,
  * if non-NULL, the resulting ATResponse * must be eventually freed with
  * at_response_free
  */
-int at_send_command (const char *command, ATResponse **pp_outResponse)
+ATReturn at_send_command (const char *command, ATResponse **pp_outResponse)
 {
     int err;
 
@@ -782,16 +782,16 @@ int at_send_command (const char *command, ATResponse **pp_outResponse)
 }
 
 
-int at_send_command_singleline (const char *command,
+ATReturn at_send_command_singleline (const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     err = at_send_command_full (command, SINGLELINE, responsePrefix,
                                     NULL, 0, pp_outResponse);
 
-    if (err == 0 && pp_outResponse != NULL
+    if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success > 0
         && (*pp_outResponse)->p_intermediates == NULL
     ) {
@@ -805,15 +805,15 @@ int at_send_command_singleline (const char *command,
 }
 
 
-int at_send_command_numeric (const char *command,
+ATReturn at_send_command_numeric (const char *command,
                                  ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     err = at_send_command_full (command, NUMERIC, NULL,
                                     NULL, 0, pp_outResponse);
 
-    if (err == 0 && pp_outResponse != NULL
+    if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success > 0
         && (*pp_outResponse)->p_intermediates == NULL
     ) {
@@ -827,17 +827,17 @@ int at_send_command_numeric (const char *command,
 }
 
 
-int at_send_command_sms (const char *command,
+ATReturn at_send_command_sms (const char *command,
                                 const char *pdu,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     err = at_send_command_full (command, SINGLELINE, responsePrefix,
                                     pdu, 0, pp_outResponse);
 
-    if (err == 0 && pp_outResponse != NULL
+    if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success > 0
         && (*pp_outResponse)->p_intermediates == NULL
     ) {
@@ -851,11 +851,11 @@ int at_send_command_sms (const char *command,
 }
 
 
-int at_send_command_multiline (const char *command,
+ATReturn at_send_command_multiline (const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     err = at_send_command_full (command, MULTILINE, responsePrefix,
                                     NULL, 0, pp_outResponse);
@@ -888,7 +888,7 @@ void at_set_on_reader_closed(void (*onClose)(void))
  * Used to ensure channel has start up and is active
  */
 
-int at_handshake(void)
+ATReturn at_handshake(void)
 {
     int i;
     int err = 0;
