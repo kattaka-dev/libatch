@@ -23,6 +23,9 @@
 extern "C" {
 #endif
 
+#include <termios.h>
+#include <stdint.h>
+
 /* define AT_DEBUG to send AT traffic to /tmp/radio-at.log" */
 #define AT_DEBUG  0
 
@@ -32,25 +35,20 @@ extern void  AT_DUMP(const char* prefix, const char*  buff, int  len);
 #define  AT_DUMP(prefix,buff,len)  do{}while(0)
 #endif
 
-#define AT_ERROR_GENERIC          (-1)
-#define AT_ERROR_COMMAND_PENDING  (-2)
-#define AT_ERROR_CHANNEL_CLOSED   (-3)
-#define AT_ERROR_TIMEOUT          (-4)
-#define AT_ERROR_INVALID_THREAD   (-5) /* AT commands may not be issued from
-                                          reader thread (or unsolicited response
-                                          callback */
-#define AT_ERROR_INVALID_RESPONSE (-6) /* eg an at_send_command_singleline that
-                                          did not get back an intermediate
-                                          response */
-
-
 typedef enum {
-    NO_RESULT,   /* no intermediate response expected */
-    NUMERIC,     /* a single intermediate response starting with a 0-9 */
-    SINGLELINE,  /* a single intermediate response starting with a prefix */
-    MULTILINE    /* multiple line intermediate response
-                    starting with a prefix */
-} ATCommandType;
+    AT_SUCCESS =                 0,
+    AT_ERROR_GENERIC =          -1,
+    AT_ERROR_COMMAND_PENDING =  -2,
+    AT_ERROR_CHANNEL_CLOSED =   -3,
+    AT_ERROR_TIMEOUT =          -4,
+    AT_ERROR_INVALID_THREAD =   -5, /* AT commands may not be issued from
+                                       reader thread (or unsolicited response
+                                       callback */
+    AT_ERROR_INVALID_RESPONSE = -6, /* eg an at_send_command_singleline that
+                                       did not get back an intermediate
+                                       response */
+} ATReturn;
+
 
 /** a singly-lined list of intermediate responses */
 typedef struct ATLine  {
@@ -66,45 +64,65 @@ typedef struct {
     ATLine  *p_intermediates; /* any intermediate responses */
 } ATResponse;
 
+typedef struct ATChannel ATChannel;
+
 /**
  * a user-provided unsolicited response handler function
  * this will be called from the reader thread, so do not block
  * "s" is the line, and "sms_pdu" is either NULL or the PDU response
  * for multi-line TS 27.005 SMS PDU responses (eg +CMT:)
  */
-typedef void (*ATUnsolHandler)(const char *s, const char *sms_pdu);
-
-int at_open(int fd, ATUnsolHandler h);
-void at_close(void);
+typedef void (*ATUnsolHandler)(ATChannel* atch, const char *s, const char *sms_pdu);
 
 /* This callback is invoked on the command thread.
    You should reset or handshake here to avoid getting out of sync */
-void at_set_on_timeout(void (*onTimeout)(void));
+typedef void (*ATOnTimeoutHandler)(ATChannel* atch);
+
 /* This callback is invoked on the reader thread (like ATUnsolHandler)
    when the input stream closes before you call at_close
    (not when you call at_close())
    You should still call at_close()
    It may also be invoked immediately from the current thread if the read
    channel is already closed */
-void at_set_on_reader_closed(void (*onClose)(void));
+typedef void (*ATOnCloseHandler)(ATChannel* atch);
 
-int at_send_command_singleline (const char *command,
+typedef struct ATChannelImpl ATChannelImpl;
+
+struct ATChannel {
+    const char* path;
+    tcflag_t lflag;
+    int bitrate;
+    int fd;
+    ATUnsolHandler unsolHandler;
+    ATOnTimeoutHandler onTimeoutHandler;
+    ATOnCloseHandler onCloseHandler;
+    uintptr_t param;
+    ATChannelImpl* impl;
+};
+
+ATReturn at_open(ATChannel* atch);
+void at_close(ATChannel* atch);
+
+ATReturn at_send_command_singleline (ATChannel* atch,
+                                const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse);
+                                ATResponse **pp_outResponse);
 
-int at_send_command_numeric (const char *command,
-                                 ATResponse **pp_outResponse);
+ATReturn at_send_command_numeric (ATChannel* atch,
+                                const char *command,
+                                ATResponse **pp_outResponse);
 
-int at_send_command_multiline (const char *command,
+ATReturn at_send_command_multiline (ATChannel* atch,
+                                const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse);
+                                ATResponse **pp_outResponse);
 
 
-int at_handshake(void);
+ATReturn at_handshake(ATChannel* atch);
 
-int at_send_command (const char *command, ATResponse **pp_outResponse);
+ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse);
 
-int at_send_command_sms (const char *command, const char *pdu,
+ATReturn at_send_command_sms (ATChannel* atch, const char *command, const char *pdu,
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
 
