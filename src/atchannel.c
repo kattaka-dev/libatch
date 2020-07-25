@@ -583,11 +583,15 @@ ATReturn  at_open(ATChannel* atch)
     int ret;
     pthread_attr_t attr;
 
-    atch->impl->s_readerClosed = 0;
-
+    atch->impl->s_tid_reader = 0;
+    atch->impl->s_ATBufferCur = atch->impl->s_ATBuffer;
+    pthread_mutex_init(&atch->impl->s_commandmutex, NULL);
+    pthread_cond_init(&atch->impl->s_commandcond, NULL);
+    atch->impl->s_type = 0;
     atch->impl->s_responsePrefix = NULL;
     atch->impl->s_smsPDU = NULL;
     atch->impl->sp_response = NULL;
+    atch->impl->s_readerClosed = 0;
 
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
