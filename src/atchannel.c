@@ -32,12 +32,13 @@
 
 #define LOG_NDEBUG 0
 #define LOG_TAG "AT"
-#include <utils/Log.h>
 
 #include "misc.h"
 
 
 #define NUM_ELEMS(x) (sizeof(x)/sizeof((x)[0]))
+#define RLOGD(atch, ...)
+#define RLOGE(atch, ...)
 
 #define MAX_AT_RESPONSE (8 * 1024)
 #define HANDSHAKE_RETRY_COUNT 8
