@@ -181,6 +181,7 @@ static int isFinalResponseSuccess(const char *line)
     return 0;
 }
 
+#if 0
 /**
  * returns 1 if line is a final response, either  error or success
  * See 27.007 annex B
@@ -190,7 +191,7 @@ static int isFinalResponse(const char *line)
 {
     return isFinalResponseSuccess(line) || isFinalResponseError(line);
 }
-
+#endif  /* 0 */
 
 /**
  * returns 1 if line is the first line in (what will be) a two-line
