@@ -572,6 +572,26 @@ static void clearPendingCommand(ATChannel* atch)
 }
 
 
+ATReturn  at_open(ATChannel* atch)
+{
+    int fd = 0;
+
+    fd = open(atch->path, O_RDWR);
+    if (fd < 0) {
+        RLOGE("opening port %s failed.", atch->path);
+        return AT_ERROR_GENERIC;
+    }
+    atch->fd = fd;
+
+    struct termios ios;
+    tcgetattr(fd, &ios);
+    ios.c_lflag = atch->lflag;
+    tcsetattr(fd, TCSANOW, &ios);
+
+    return at_attach(atch);
+}
+
+
 /**
  * Starts AT handler on stream "fd'
  * returns 0 on success, -1 on error
