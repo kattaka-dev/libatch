@@ -43,8 +43,8 @@
 #define RLOGE(atch, ...)
 
 #define MAX_AT_RESPONSE ((size_t)(8 * 1024))
-#define HANDSHAKE_RETRY_COUNT 8
-#define HANDSHAKE_TIMEOUT_MSEC 250
+#define HANDSHAKE_RETRY_COUNT (8)
+#define HANDSHAKE_TIMEOUT_MSEC (250)
 
 static pthread_t s_tid_reader;
 static int s_fd = -1;    /* fd of the AT channel */
@@ -85,7 +85,7 @@ static void onReaderClosed(void);
 static int writeCtrlZ (const char *s);
 static int writeline (const char *s);
 
-#define NS_PER_S 1000000000
+#define NS_PER_S (1000000000)
 static void setTimespecRelative(struct timespec *p_ts, long long msec)
 {
     struct timeval tv;
