@@ -47,14 +47,6 @@ typedef enum {
 } ATReturn;
 
 
-typedef enum {
-    NO_RESULT,   /* no intermediate response expected */
-    NUMERIC,     /* a single intermediate response starting with a 0-9 */
-    SINGLELINE,  /* a single intermediate response starting with a prefix */
-    MULTILINE    /* multiple line intermediate response
-                    starting with a prefix */
-} ATCommandType;
-
 /** a singly-lined list of intermediate responses */
 typedef struct ATLine  {
     struct ATLine *p_next;

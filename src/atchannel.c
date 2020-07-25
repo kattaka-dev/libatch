@@ -42,6 +42,14 @@
 #define RLOGD(atch, ...)
 #define RLOGE(atch, ...)
 
+typedef enum {
+    NO_RESULT,   /* no intermediate response expected */
+    NUMERIC,     /* a single intermediate response starting with a 0-9 */
+    SINGLELINE,  /* a single intermediate response starting with a prefix */
+    MULTILINE    /* multiple line intermediate response
+                    starting with a prefix */
+} ATCommandType;
+
 #define MAX_AT_RESPONSE ((size_t)(8 * 1024))
 #define HANDSHAKE_RETRY_COUNT (8)
 #define HANDSHAKE_TIMEOUT_MSEC (250)
