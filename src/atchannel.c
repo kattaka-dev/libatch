@@ -571,7 +571,6 @@ static void clearPendingCommand(void)
 int at_open(int fd, ATUnsolHandler h)
 {
     int ret;
-    pthread_t tid;
     pthread_attr_t attr;
 
     s_fd = fd;
