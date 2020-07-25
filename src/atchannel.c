@@ -576,7 +576,7 @@ static void clearPendingCommand(ATChannel* atch)
  * Starts AT handler on stream "fd'
  * returns 0 on success, -1 on error
  */
-ATReturn  at_open(ATChannel* atch)
+ATReturn  at_attach(ATChannel* atch)
 {
     int ret;
     pthread_attr_t attr;

@@ -100,7 +100,7 @@ struct ATChannel {
     ATChannelImpl* impl;
 };
 
-ATReturn at_open(ATChannel* atch);
+ATReturn at_attach(ATChannel* atch);
 void at_close(ATChannel* atch);
 
 ATReturn at_send_command_singleline (ATChannel* atch,
