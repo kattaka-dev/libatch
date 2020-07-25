@@ -1,6 +1,7 @@
-/* //device/system/reference-ril/at_tok.h
+/* //device/system/reference-ril/misc.c
 **
 ** Copyright 2006, The Android Open Source Project
+** Copyright 2020, The libatch Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -15,16 +16,15 @@
 ** limitations under the License.
 */
 
-#ifndef AT_TOK_H
-#define AT_TOK_H 1
+/** returns 1 if line starts with prefix, 0 if it does not */
+int strStartsWith(const char *line, const char *prefix)
+{
+    for ( ; *line != '\0' && *prefix != '\0' ; line++, prefix++) {
+        if (*line != *prefix) {
+            return 0;
+        }
+    }
 
-int at_tok_start(char **p_cur);
-int at_tok_nextint(char **p_cur, int *p_out);
-int at_tok_nexthexint(char **p_cur, int *p_out);
+    return *prefix == '\0';
+}
 
-int at_tok_nextbool(char **p_cur, char *p_out);
-int at_tok_nextstr(char **p_cur, char **out);
-
-int at_tok_hasmore(char **p_cur);
-
-#endif /*AT_TOK_H */
