@@ -65,25 +65,25 @@ typedef enum {
 #define HANDSHAKE_TIMEOUT_MSEC (250)
 
 struct ATChannelImpl {
-    pthread_t s_tid_reader;
+    pthread_t tid_reader;
 
 /* for input buffering */
-    char s_ATBuffer[MAX_AT_RESPONSE+1];
-    char *s_ATBufferCur;
+    char ATBuffer[MAX_AT_RESPONSE+1];
+    char *ATBufferCur;
 
 /*
  * for current pending command
- * these are protected by s_commandmutex
+ * these are protected by commandmutex
  */
-    pthread_mutex_t s_commandmutex;
-    pthread_cond_t s_commandcond;
+    pthread_mutex_t commandmutex;
+    pthread_cond_t commandcond;
 
-    ATCommandType s_type;
-    const char *s_responsePrefix;
-    const char *s_smsPDU;
-    ATResponse *sp_response;
+    ATCommandType type;
+    const char *responsePrefix;
+    const char *smsPDU;
+    ATResponse *p_response;
 
-    int s_readerClosed;
+    int readerClosed;
 };
 
 static void onReaderClosed(ATChannel* atch);
@@ -121,7 +121,7 @@ static void sleepMsec(long long msec)
 
 
 
-/** add an intermediate response to sp_response*/
+/** add an intermediate response to p_response*/
 static void addIntermediate(ATChannel* atch, const char *line)
 {
     ATLine *p_new;
@@ -133,8 +133,8 @@ static void addIntermediate(ATChannel* atch, const char *line)
     /* note: this adds to the head of the list, so the list
        will be in reverse order of lines received. the order is flipped
        again before passing on to the command issuer */
-    p_new->p_next = atch->impl->sp_response->p_intermediates;
-    atch->impl->sp_response->p_intermediates = p_new;
+    p_new->p_next = atch->impl->p_response->p_intermediates;
+    atch->impl->p_response->p_intermediates = p_new;
 }
 
 
@@ -221,12 +221,12 @@ static int isSMSUnsolicited(const char *line)
 }
 
 
-/** assumes s_commandmutex is held */
+/** assumes commandmutex is held */
 static void handleFinalResponse(ATChannel* atch, const char *line)
 {
-    atch->impl->sp_response->finalResponse = strdup(line);
+    atch->impl->p_response->finalResponse = strdup(line);
 
-    pthread_cond_signal(&atch->impl->s_commandcond);
+    pthread_cond_signal(&atch->impl->commandcond);
 }
 
 static void handleUnsolicited(ATChannel* atch, const char *line)
@@ -238,28 +238,28 @@ static void handleUnsolicited(ATChannel* atch, const char *line)
 
 static void processLine(ATChannel* atch, const char *line)
 {
-    pthread_mutex_lock(&atch->impl->s_commandmutex);
+    pthread_mutex_lock(&atch->impl->commandmutex);
 
-    if (atch->impl->sp_response == NULL) {
+    if (atch->impl->p_response == NULL) {
         /* no command pending */
         handleUnsolicited(atch, line);
     } else if (isFinalResponseSuccess(line)) {
-        atch->impl->sp_response->success = 1;
+        atch->impl->p_response->success = 1;
         handleFinalResponse(atch, line);
     } else if (isFinalResponseError(line)) {
-        atch->impl->sp_response->success = 0;
+        atch->impl->p_response->success = 0;
         handleFinalResponse(atch, line);
-    } else if (atch->impl->s_smsPDU != NULL && 0 == strcmp(line, "> ")) {
+    } else if (atch->impl->smsPDU != NULL && 0 == strcmp(line, "> ")) {
         // See eg. TS 27.005 4.3
         // Commands like AT+CMGS have a "> " prompt
-        writeCtrlZ(atch, atch->impl->s_smsPDU);
-        atch->impl->s_smsPDU = NULL;
-    } else switch (atch->impl->s_type) {
+        writeCtrlZ(atch, atch->impl->smsPDU);
+        atch->impl->smsPDU = NULL;
+    } else switch (atch->impl->type) {
         case NO_RESULT:
             handleUnsolicited(atch, line);
             break;
         case NUMERIC:
-            if (atch->impl->sp_response->p_intermediates == NULL
+            if (atch->impl->p_response->p_intermediates == NULL
                 && isdigit(line[0])
             ) {
                 addIntermediate(atch, line);
@@ -270,8 +270,8 @@ static void processLine(ATChannel* atch, const char *line)
             }
             break;
         case SINGLELINE:
-            if (atch->impl->sp_response->p_intermediates == NULL
-                && strStartsWith (line, atch->impl->s_responsePrefix)
+            if (atch->impl->p_response->p_intermediates == NULL
+                && strStartsWith (line, atch->impl->responsePrefix)
             ) {
                 addIntermediate(atch, line);
             } else {
@@ -280,7 +280,7 @@ static void processLine(ATChannel* atch, const char *line)
             }
             break;
         case MULTILINE:
-            if (strStartsWith (line, atch->impl->s_responsePrefix)) {
+            if (strStartsWith (line, atch->impl->responsePrefix)) {
                 addIntermediate(atch, line);
             } else {
                 handleUnsolicited(atch, line);
@@ -288,12 +288,12 @@ static void processLine(ATChannel* atch, const char *line)
         break;
 
         default: /* this should never be reached */
-            RLOGE("Unsupported AT command type %d\n", atch->impl->s_type);
+            RLOGE("Unsupported AT command type %d\n", atch->impl->type);
             handleUnsolicited(atch, line);
         break;
     }
 
-    pthread_mutex_unlock(&atch->impl->s_commandmutex);
+    pthread_mutex_unlock(&atch->impl->commandmutex);
 }
 
 
@@ -335,50 +335,50 @@ static const char *readline(ATChannel* atch)
     char *p_eol = NULL;
     char *ret;
 
-    /* this is a little odd. I use *s_ATBufferCur == 0 to
+    /* this is a little odd. I use *ATBufferCur == 0 to
      * mean "buffer consumed completely". If it points to a character, than
      * the buffer continues until a \0
      */
-    if (*atch->impl->s_ATBufferCur == '\0') {
+    if (*atch->impl->ATBufferCur == '\0') {
         /* empty buffer */
-        atch->impl->s_ATBufferCur = atch->impl->s_ATBuffer;
-        *atch->impl->s_ATBufferCur = '\0';
-        p_read = atch->impl->s_ATBuffer;
-    } else {   /* *s_ATBufferCur != '\0' */
+        atch->impl->ATBufferCur = atch->impl->ATBuffer;
+        *atch->impl->ATBufferCur = '\0';
+        p_read = atch->impl->ATBuffer;
+    } else {   /* *ATBufferCur != '\0' */
         /* there's data in the buffer from the last read */
 
         // skip over leading newlines
-        while (*atch->impl->s_ATBufferCur == '\r' || *atch->impl->s_ATBufferCur == '\n')
-            atch->impl->s_ATBufferCur++;
+        while (*atch->impl->ATBufferCur == '\r' || *atch->impl->ATBufferCur == '\n')
+            atch->impl->ATBufferCur++;
 
-        p_eol = findNextEOL(atch->impl->s_ATBufferCur);
+        p_eol = findNextEOL(atch->impl->ATBufferCur);
 
         if (p_eol == NULL) {
             /* a partial line. move it up and prepare to read more */
             size_t len;
 
-            len = strlen(atch->impl->s_ATBufferCur);
+            len = strlen(atch->impl->ATBufferCur);
 
-            memmove(atch->impl->s_ATBuffer, atch->impl->s_ATBufferCur, len + 1);
-            p_read = atch->impl->s_ATBuffer + len;
-            atch->impl->s_ATBufferCur = atch->impl->s_ATBuffer;
+            memmove(atch->impl->ATBuffer, atch->impl->ATBufferCur, len + 1);
+            p_read = atch->impl->ATBuffer + len;
+            atch->impl->ATBufferCur = atch->impl->ATBuffer;
         }
         /* Otherwise, (p_eol !- NULL) there is a complete line  */
         /* that will be returned the while () loop below        */
     }
 
     while (p_eol == NULL) {
-        if (0 == MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->s_ATBuffer)) {
+        if (0 == MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->ATBuffer)) {
             RLOGE("ERROR: Input line exceeded buffer\n");
             /* ditch buffer and start over again */
-            atch->impl->s_ATBufferCur = atch->impl->s_ATBuffer;
-            *atch->impl->s_ATBufferCur = '\0';
-            p_read = atch->impl->s_ATBuffer;
+            atch->impl->ATBufferCur = atch->impl->ATBuffer;
+            *atch->impl->ATBufferCur = '\0';
+            p_read = atch->impl->ATBuffer;
         }
 
         do {
             count = read(atch->fd, p_read,
-                            MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->s_ATBuffer));
+                            MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->ATBuffer));
         } while (count < 0 && errno == EINTR);
 
         if (count > 0) {
@@ -387,10 +387,10 @@ static const char *readline(ATChannel* atch)
             p_read[count] = '\0';
 
             // skip over leading newlines
-            while (*atch->impl->s_ATBufferCur == '\r' || *atch->impl->s_ATBufferCur == '\n')
-                atch->impl->s_ATBufferCur++;
+            while (*atch->impl->ATBufferCur == '\r' || *atch->impl->ATBufferCur == '\n')
+                atch->impl->ATBufferCur++;
 
-            p_eol = findNextEOL(atch->impl->s_ATBufferCur);
+            p_eol = findNextEOL(atch->impl->ATBufferCur);
             p_read += count;
         } else if (count <= 0) {
             /* read error encountered or EOF reached */
@@ -405,9 +405,9 @@ static const char *readline(ATChannel* atch)
 
     /* a full line in the buffer. Place a \0 over the \r and return */
 
-    ret = atch->impl->s_ATBufferCur;
+    ret = atch->impl->ATBufferCur;
     *p_eol = '\0';
-    atch->impl->s_ATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
+    atch->impl->ATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
                               /* and there will be a \0 at *p_read */
 
     RLOGD("AT< %s\n", ret);
@@ -417,15 +417,15 @@ static const char *readline(ATChannel* atch)
 
 static void onReaderClosed(ATChannel* atch)
 {
-    if (atch->onCloseHandler != NULL && atch->impl->s_readerClosed == 0) {
+    if (atch->onCloseHandler != NULL && atch->impl->readerClosed == 0) {
 
-        pthread_mutex_lock(&atch->impl->s_commandmutex);
+        pthread_mutex_lock(&atch->impl->commandmutex);
 
-        atch->impl->s_readerClosed = 1;
+        atch->impl->readerClosed = 1;
 
-        pthread_cond_signal(&atch->impl->s_commandcond);
+        pthread_cond_signal(&atch->impl->commandcond);
 
-        pthread_mutex_unlock(&atch->impl->s_commandmutex);
+        pthread_mutex_unlock(&atch->impl->commandmutex);
 
         atch->onCloseHandler(atch);
     }
@@ -487,7 +487,7 @@ static int writeline (ATChannel* atch, const char *s)
     size_t len = strlen(s);
     ssize_t written;
 
-    if (atch->fd < 0 || atch->impl->s_readerClosed > 0) {
+    if (atch->fd < 0 || atch->impl->readerClosed > 0) {
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
@@ -526,7 +526,7 @@ static int writeCtrlZ (ATChannel* atch, const char *s)
     size_t len = strlen(s);
     ssize_t written;
 
-    if (atch->fd < 0 || atch->impl->s_readerClosed > 0) {
+    if (atch->fd < 0 || atch->impl->readerClosed > 0) {
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
@@ -562,13 +562,13 @@ static int writeCtrlZ (ATChannel* atch, const char *s)
 
 static void clearPendingCommand(ATChannel* atch)
 {
-    if (atch->impl->sp_response != NULL) {
-        at_response_free(atch->impl->sp_response);
+    if (atch->impl->p_response != NULL) {
+        at_response_free(atch->impl->p_response);
     }
 
-    atch->impl->sp_response = NULL;
-    atch->impl->s_responsePrefix = NULL;
-    atch->impl->s_smsPDU = NULL;
+    atch->impl->p_response = NULL;
+    atch->impl->responsePrefix = NULL;
+    atch->impl->smsPDU = NULL;
 }
 
 
@@ -581,20 +581,20 @@ ATReturn  at_open(ATChannel* atch)
     int ret;
     pthread_attr_t attr;
 
-    atch->impl->s_tid_reader = 0;
-    atch->impl->s_ATBufferCur = atch->impl->s_ATBuffer;
-    pthread_mutex_init(&atch->impl->s_commandmutex, NULL);
-    pthread_cond_init(&atch->impl->s_commandcond, NULL);
-    atch->impl->s_type = 0;
-    atch->impl->s_responsePrefix = NULL;
-    atch->impl->s_smsPDU = NULL;
-    atch->impl->sp_response = NULL;
-    atch->impl->s_readerClosed = 0;
+    atch->impl->tid_reader = 0;
+    atch->impl->ATBufferCur = atch->impl->ATBuffer;
+    pthread_mutex_init(&atch->impl->commandmutex, NULL);
+    pthread_cond_init(&atch->impl->commandcond, NULL);
+    atch->impl->type = 0;
+    atch->impl->responsePrefix = NULL;
+    atch->impl->smsPDU = NULL;
+    atch->impl->p_response = NULL;
+    atch->impl->readerClosed = 0;
 
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    ret = pthread_create(&atch->impl->s_tid_reader, &attr, readerLoop, &attr);
+    ret = pthread_create(&atch->impl->tid_reader, &attr, readerLoop, &attr);
 
     if (ret < 0) {
         perror ("pthread_create");
@@ -613,13 +613,13 @@ void at_close(ATChannel* atch)
     }
     atch->fd = -1;
 
-    pthread_mutex_lock(&atch->impl->s_commandmutex);
+    pthread_mutex_lock(&atch->impl->commandmutex);
 
-    atch->impl->s_readerClosed = 1;
+    atch->impl->readerClosed = 1;
 
-    pthread_cond_signal(&atch->impl->s_commandcond);
+    pthread_cond_signal(&atch->impl->commandcond);
 
-    pthread_mutex_unlock(&atch->impl->s_commandmutex);
+    pthread_mutex_unlock(&atch->impl->commandmutex);
 
     /* the reader thread should eventually die */
 }
@@ -684,7 +684,7 @@ static int at_send_command_full_nolock (ATChannel* atch, const char *command, AT
     int err = 0;
     struct timespec ts;
 
-    if(atch->impl->sp_response != NULL) {
+    if(atch->impl->p_response != NULL) {
         err = AT_ERROR_COMMAND_PENDING;
         goto error;
     }
@@ -695,20 +695,20 @@ static int at_send_command_full_nolock (ATChannel* atch, const char *command, AT
         goto error;
     }
 
-    atch->impl->s_type = type;
-    atch->impl->s_responsePrefix = responsePrefix;
-    atch->impl->s_smsPDU = smspdu;
-    atch->impl->sp_response = at_response_new();
+    atch->impl->type = type;
+    atch->impl->responsePrefix = responsePrefix;
+    atch->impl->smsPDU = smspdu;
+    atch->impl->p_response = at_response_new();
 
     if (timeoutMsec != 0) {
         setTimespecRelative(&ts, timeoutMsec);
     }
 
-    while (atch->impl->sp_response->finalResponse == NULL && atch->impl->s_readerClosed == 0) {
+    while (atch->impl->p_response->finalResponse == NULL && atch->impl->readerClosed == 0) {
         if (timeoutMsec != 0) {
-            err = pthread_cond_timedwait(&atch->impl->s_commandcond, &atch->impl->s_commandmutex, &ts);
+            err = pthread_cond_timedwait(&atch->impl->commandcond, &atch->impl->commandmutex, &ts);
         } else {
-            err = pthread_cond_wait(&atch->impl->s_commandcond, &atch->impl->s_commandmutex);
+            err = pthread_cond_wait(&atch->impl->commandcond, &atch->impl->commandmutex);
         }
 
         if (err == ETIMEDOUT) {
@@ -718,16 +718,16 @@ static int at_send_command_full_nolock (ATChannel* atch, const char *command, AT
     }
 
     if (pp_outResponse == NULL) {
-        at_response_free(atch->impl->sp_response);
+        at_response_free(atch->impl->p_response);
     } else {
         /* line reader stores intermediate responses in reverse order */
-        reverseIntermediates(atch->impl->sp_response);
-        *pp_outResponse = atch->impl->sp_response;
+        reverseIntermediates(atch->impl->p_response);
+        *pp_outResponse = atch->impl->p_response;
     }
 
-    atch->impl->sp_response = NULL;
+    atch->impl->p_response = NULL;
 
-    if(atch->impl->s_readerClosed > 0) {
+    if(atch->impl->readerClosed > 0) {
         err = AT_ERROR_CHANNEL_CLOSED;
         goto error;
     }
@@ -750,18 +750,18 @@ static int at_send_command_full (ATChannel* atch, const char *command, ATCommand
 {
     int err;
 
-    if (0 != pthread_equal(atch->impl->s_tid_reader, pthread_self())) {
+    if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
         return AT_ERROR_INVALID_THREAD;
     }
 
-    pthread_mutex_lock(&atch->impl->s_commandmutex);
+    pthread_mutex_lock(&atch->impl->commandmutex);
 
     err = at_send_command_full_nolock(atch, command, type,
                     responsePrefix, smspdu,
                     timeoutMsec, pp_outResponse);
 
-    pthread_mutex_unlock(&atch->impl->s_commandmutex);
+    pthread_mutex_unlock(&atch->impl->commandmutex);
 
     if (err == AT_ERROR_TIMEOUT && atch->onTimeoutHandler != NULL) {
         atch->onTimeoutHandler(atch);
@@ -883,12 +883,12 @@ ATReturn at_handshake(ATChannel* atch)
     int i;
     int err = 0;
 
-    if (0 != pthread_equal(atch->impl->s_tid_reader, pthread_self())) {
+    if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
         return AT_ERROR_INVALID_THREAD;
     }
 
-    pthread_mutex_lock(&atch->impl->s_commandmutex);
+    pthread_mutex_lock(&atch->impl->commandmutex);
 
     for (i = 0 ; i < HANDSHAKE_RETRY_COUNT ; i++) {
         /* some stacks start with verbose off */
@@ -907,7 +907,7 @@ ATReturn at_handshake(ATChannel* atch)
         sleepMsec(HANDSHAKE_TIMEOUT_MSEC);
     }
 
-    pthread_mutex_unlock(&atch->impl->s_commandmutex);
+    pthread_mutex_unlock(&atch->impl->commandmutex);
 
     return err;
 }
