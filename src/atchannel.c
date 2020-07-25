@@ -64,6 +64,8 @@ typedef enum {
 #define HANDSHAKE_RETRY_COUNT (8)
 #define HANDSHAKE_TIMEOUT_MSEC (250)
 
+struct ATChannelImpl {
+};
 static pthread_t s_tid_reader;
 static int s_fd = -1;    /* fd of the AT channel */
 static ATUnsolHandler s_unsolHandler;

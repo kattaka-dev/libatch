@@ -23,6 +23,8 @@
 extern "C" {
 #endif
 
+#include <termios.h>
+
 /* define AT_DEBUG to send AT traffic to /tmp/radio-at.log" */
 #define AT_DEBUG  0
 
@@ -80,6 +82,18 @@ typedef void (*ATOnTimeoutHandler)(void);
    It may also be invoked immediately from the current thread if the read
    channel is already closed */
 typedef void (*ATOnCloseHandler)(void);
+
+typedef struct ATChannelImpl ATChannelImpl;
+
+typedef struct {
+    const char* portPath;
+    tcflag_t port_lflag;
+    int portFd;
+    ATUnsolHandler unsolHander;
+    ATOnTimeoutHandler onTimeoutHandler;
+    ATOnCloseHandler onCloseHandler;
+    ATChannelImpl* impl;
+} ATChannel;
 
 ATReturn at_open(int fd, ATUnsolHandler h);
 void at_close(void);
