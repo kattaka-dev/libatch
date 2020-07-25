@@ -290,7 +290,7 @@ static void processLine(ATChannel* atch, const char *line)
         break;
 
         default: /* this should never be reached */
-            RLOGE(atch, "Unsupported AT command type %d\n", atch->impl->type);
+            RLOGE(atch, "Unsupported AT command type %d", atch->impl->type);
             handleUnsolicited(atch, line);
         break;
     }
@@ -371,7 +371,7 @@ static const char *readline(ATChannel* atch)
 
     while (p_eol == NULL) {
         if (0 == MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->ATBuffer)) {
-            RLOGE(atch, "ERROR: Input line exceeded buffer\n");
+            RLOGE(atch, "ERROR: Input line exceeded buffer");
             /* ditch buffer and start over again */
             atch->impl->ATBufferCur = atch->impl->ATBuffer;
             *atch->impl->ATBufferCur = '\0';
@@ -412,7 +412,7 @@ static const char *readline(ATChannel* atch)
     atch->impl->ATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
                               /* and there will be a \0 at *p_read */
 
-    RLOGD(atch, "AT< %s\n", ret);
+    RLOGD(atch, "AT< %s", ret);
     return ret;
 }
 
@@ -493,7 +493,7 @@ static int writeline (ATChannel* atch, const char *s)
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
-    RLOGD(atch, "AT> %s\n", s);
+    RLOGD(atch, "AT> %s", s);
 
     AT_DUMP( atch, ">> ", s, strlen(s) );
 
@@ -532,7 +532,7 @@ static int writeCtrlZ (ATChannel* atch, const char *s)
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
-    RLOGD(atch, "AT> %s^Z\n", s);
+    RLOGD(atch, "AT> %s^Z", s);
 
     AT_DUMP( atch, ">* ", s, strlen(s) );
 
