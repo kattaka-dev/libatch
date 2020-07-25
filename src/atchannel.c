@@ -16,6 +16,8 @@
 ** limitations under the License.
 */
 
+#define _POSIX_C_SOURCE (200809L)
+#include <features.h>
 #include "atchannel.h"
 #include "at_tok.h"
 
