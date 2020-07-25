@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include <termios.h>
+#include <stdint.h>
 
 /* define AT_DEBUG to send AT traffic to /tmp/radio-at.log" */
 #define AT_DEBUG  0
@@ -63,17 +64,19 @@ typedef struct {
     ATLine  *p_intermediates; /* any intermediate responses */
 } ATResponse;
 
+typedef struct ATChannel ATChannel;
+
 /**
  * a user-provided unsolicited response handler function
  * this will be called from the reader thread, so do not block
  * "s" is the line, and "sms_pdu" is either NULL or the PDU response
  * for multi-line TS 27.005 SMS PDU responses (eg +CMT:)
  */
-typedef void (*ATUnsolHandler)(const char *s, const char *sms_pdu);
+typedef void (*ATUnsolHandler)(ATChannel* atch, const char *s, const char *sms_pdu);
 
 /* This callback is invoked on the command thread.
    You should reset or handshake here to avoid getting out of sync */
-typedef void (*ATOnTimeoutHandler)(void);
+typedef void (*ATOnTimeoutHandler)(ATChannel* atch);
 
 /* This callback is invoked on the reader thread (like ATUnsolHandler)
    when the input stream closes before you call at_close
@@ -81,43 +84,48 @@ typedef void (*ATOnTimeoutHandler)(void);
    You should still call at_close()
    It may also be invoked immediately from the current thread if the read
    channel is already closed */
-typedef void (*ATOnCloseHandler)(void);
+typedef void (*ATOnCloseHandler)(ATChannel* atch);
 
 typedef struct ATChannelImpl ATChannelImpl;
 
-typedef struct {
-    const char* portPath;
-    tcflag_t port_lflag;
-    int portFd;
-    ATUnsolHandler unsolHander;
+struct ATChannel {
+    const char* path;
+    tcflag_t lflag;
+    int bitrate;
+    int fd;
+    ATUnsolHandler unsolHandler;
     ATOnTimeoutHandler onTimeoutHandler;
     ATOnCloseHandler onCloseHandler;
+    uintptr_t param;
     ATChannelImpl* impl;
-} ATChannel;
+};
 
-ATReturn at_open(int fd, ATUnsolHandler h);
-void at_close(void);
+ATReturn at_open(ATChannel* atch);
+void at_close(ATChannel* atch);
 
-void at_set_on_timeout(ATOnTimeoutHandler onTimeout);
-void at_set_on_reader_closed(ATOnCloseHandler onClose);
+void at_set_on_timeout(ATChannel* atch, ATOnTimeoutHandler onTimeout);
+void at_set_on_reader_closed(ATChannel* atch, ATOnCloseHandler onClose);
 
-ATReturn at_send_command_singleline (const char *command,
+ATReturn at_send_command_singleline (ATChannel* atch,
+                                const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse);
+                                ATResponse **pp_outResponse);
 
-ATReturn at_send_command_numeric (const char *command,
-                                 ATResponse **pp_outResponse);
+ATReturn at_send_command_numeric (ATChannel* atch,
+                                const char *command,
+                                ATResponse **pp_outResponse);
 
-ATReturn at_send_command_multiline (const char *command,
+ATReturn at_send_command_multiline (ATChannel* atch,
+                                const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse);
+                                ATResponse **pp_outResponse);
 
 
-ATReturn at_handshake(void);
+ATReturn at_handshake(ATChannel* atch);
 
-ATReturn at_send_command (const char *command, ATResponse **pp_outResponse);
+ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse);
 
-ATReturn at_send_command_sms (const char *command, const char *pdu,
+ATReturn at_send_command_sms (ATChannel* atch, const char *command, const char *pdu,
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
 
