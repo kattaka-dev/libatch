@@ -16,6 +16,8 @@
 ** limitations under the License.
 */
 
+#define _POSIX_C_SOURCE (200809L)
+#include <features.h>
 #include "atchannel.h"
 #include "at_tok.h"
 
@@ -40,9 +42,9 @@
 #define RLOGD(atch, ...)
 #define RLOGE(atch, ...)
 
-#define MAX_AT_RESPONSE (8 * 1024)
-#define HANDSHAKE_RETRY_COUNT 8
-#define HANDSHAKE_TIMEOUT_MSEC 250
+#define MAX_AT_RESPONSE ((size_t)(8 * 1024))
+#define HANDSHAKE_RETRY_COUNT (8)
+#define HANDSHAKE_TIMEOUT_MSEC (250)
 
 static pthread_t s_tid_reader;
 static int s_fd = -1;    /* fd of the AT channel */
@@ -79,11 +81,11 @@ static void (*s_onTimeout)(void) = NULL;
 static void (*s_onReaderClosed)(void) = NULL;
 static int s_readerClosed;
 
-static void onReaderClosed();
+static void onReaderClosed(void);
 static int writeCtrlZ (const char *s);
 static int writeline (const char *s);
 
-#define NS_PER_S 1000000000
+#define NS_PER_S (1000000000)
 static void setTimespecRelative(struct timespec *p_ts, long long msec)
 {
     struct timeval tv;
@@ -179,6 +181,7 @@ static int isFinalResponseSuccess(const char *line)
     return 0;
 }
 
+#if 0
 /**
  * returns 1 if line is a final response, either  error or success
  * See 27.007 annex B
@@ -188,7 +191,7 @@ static int isFinalResponse(const char *line)
 {
     return isFinalResponseSuccess(line) || isFinalResponseError(line);
 }
-
+#endif  /* 0 */
 
 /**
  * returns 1 if line is the first line in (what will be) a two-line
@@ -319,7 +322,7 @@ static char * findNextEOL(char *cur)
  * have buffered stdio.
  */
 
-static const char *readline()
+static const char *readline(void)
 {
     ssize_t count;
 
@@ -360,7 +363,7 @@ static const char *readline()
     }
 
     while (p_eol == NULL) {
-        if (0 == MAX_AT_RESPONSE - (p_read - s_ATBuffer)) {
+        if (0 == MAX_AT_RESPONSE - (size_t)(p_read - s_ATBuffer)) {
             RLOGE("ERROR: Input line exceeded buffer\n");
             /* ditch buffer and start over again */
             s_ATBufferCur = s_ATBuffer;
@@ -370,7 +373,7 @@ static const char *readline()
 
         do {
             count = read(s_fd, p_read,
-                            MAX_AT_RESPONSE - (p_read - s_ATBuffer));
+                            MAX_AT_RESPONSE - (size_t)(p_read - s_ATBuffer));
         } while (count < 0 && errno == EINTR);
 
         if (count > 0) {
@@ -407,7 +410,7 @@ static const char *readline()
 }
 
 
-static void onReaderClosed()
+static void onReaderClosed(void)
 {
     if (s_onReaderClosed != NULL && s_readerClosed == 0) {
 
@@ -495,7 +498,7 @@ static int writeline (const char *s)
             return AT_ERROR_GENERIC;
         }
 
-        cur += written;
+        cur += (size_t)written;
     }
 
     /* the \r  */
@@ -534,7 +537,7 @@ static int writeCtrlZ (const char *s)
             return AT_ERROR_GENERIC;
         }
 
-        cur += written;
+        cur += (size_t)written;
     }
 
     /* the ^Z  */
@@ -550,7 +553,7 @@ static int writeCtrlZ (const char *s)
     return 0;
 }
 
-static void clearPendingCommand()
+static void clearPendingCommand(void)
 {
     if (sp_response != NULL) {
         at_response_free(sp_response);
@@ -569,7 +572,6 @@ static void clearPendingCommand()
 int at_open(int fd, ATUnsolHandler h)
 {
     int ret;
-    pthread_t tid;
     pthread_attr_t attr;
 
     s_fd = fd;
@@ -595,7 +597,7 @@ int at_open(int fd, ATUnsolHandler h)
 }
 
 /* FIXME is it ok to call this from the reader and the command thread? */
-void at_close()
+void at_close(void)
 {
     if (s_fd >= 0) {
         close(s_fd);
@@ -613,7 +615,7 @@ void at_close()
     /* the reader thread should eventually die */
 }
 
-static ATResponse * at_response_new()
+static ATResponse * at_response_new(void)
 {
     return (ATResponse *) calloc(1, sizeof(ATResponse));
 }
@@ -886,7 +888,7 @@ void at_set_on_reader_closed(void (*onClose)(void))
  * Used to ensure channel has start up and is active
  */
 
-int at_handshake()
+int at_handshake(void)
 {
     int i;
     int err = 0;
