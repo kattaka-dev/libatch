@@ -43,6 +43,15 @@
 #define RLOGD(atch, ...)
 #define RLOGE(atch, ...)
 
+#if AT_DEBUG
+void  AT_DUMP(const char*  prefix, const char*  buff, int  len)
+{
+    if (len < 0)
+        len = strlen(buff);
+    RLOGD("%.*s", len, buff);
+}
+#endif
+
 typedef enum {
     NO_RESULT,   /* no intermediate response expected */
     NUMERIC,     /* a single intermediate response starting with a 0-9 */
@@ -63,15 +72,6 @@ static ATUnsolHandler s_unsolHandler;
 
 static char s_ATBuffer[MAX_AT_RESPONSE+1];
 static char *s_ATBufferCur = s_ATBuffer;
-
-#if AT_DEBUG
-void  AT_DUMP(const char*  prefix, const char*  buff, int  len)
-{
-    if (len < 0)
-        len = strlen(buff);
-    RLOGD("%.*s", len, buff);
-}
-#endif
 
 /*
  * for current pending command
