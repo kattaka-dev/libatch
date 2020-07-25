@@ -17,6 +17,7 @@
 */
 
 #include "at_tok.h"
+#define _DEFAULT_SOURCE
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
