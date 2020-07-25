@@ -25,14 +25,15 @@ extern "C" {
 
 #include <termios.h>
 #include <stdint.h>
+#include <syslog.h>
 
 /* define AT_DEBUG to send AT traffic to /tmp/radio-at.log" */
 #define AT_DEBUG  0
 
 #if AT_DEBUG
-extern void  AT_DUMP(const char* prefix, const char*  buff, int  len);
+extern void  AT_DUMP(ATChannel* atch, const char* prefix, const char*  buff, int  len);
 #else
-#define  AT_DUMP(prefix,buff,len)  do{}while(0)
+#define  AT_DUMP(atch, prefix,buff,len)  do{}while(0)
 #endif
 
 typedef enum {
@@ -86,6 +87,8 @@ typedef void (*ATOnTimeoutHandler)(ATChannel* atch);
    channel is already closed */
 typedef void (*ATOnCloseHandler)(ATChannel* atch);
 
+typedef void (*ATLog)(ATChannel* atch, int level, const char* format, ...);
+
 typedef struct ATChannelImpl ATChannelImpl;
 
 struct ATChannel {
@@ -96,6 +99,7 @@ struct ATChannel {
     ATUnsolHandler unsolHandler;
     ATOnTimeoutHandler onTimeoutHandler;
     ATOnCloseHandler onCloseHandler;
+    ATLog log;
     uintptr_t param;
     ATChannelImpl* impl;
 };
