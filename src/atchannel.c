@@ -424,7 +424,7 @@ static void onReaderClosed()
 }
 
 
-static void *readerLoop(void *arg __unused)
+static void *readerLoop(void *arg)
 {
     for (;;) {
         const char * line;
