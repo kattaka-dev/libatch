@@ -32,6 +32,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #define LOG_NDEBUG 0
 #define LOG_TAG "AT"
@@ -40,15 +41,15 @@
 
 
 #define NUM_ELEMS(x) (sizeof(x)/sizeof((x)[0]))
-#define RLOGD(atch, ...)
-#define RLOGE(atch, ...)
+#define RLOGD(atch, ...) outputLog(atch, LOG_DEBUG, __VA_ARGS__)
+#define RLOGE(atch, ...) outputLog(atch, LOG_ERR, __VA_ARGS__)
 
 #if AT_DEBUG
-void  AT_DUMP(const char*  prefix, const char*  buff, int  len)
+void  AT_DUMP(ATChannel* atch, const char*  prefix, const char*  buff, int  len)
 {
     if (len < 0)
         len = strlen(buff);
-    RLOGD("%.*s", len, buff);
+    RLOGD(atch, "%.*s", len, buff);
 }
 #endif
 
@@ -89,6 +90,7 @@ struct ATChannelImpl {
 static void onReaderClosed(ATChannel* atch);
 static int writeCtrlZ (ATChannel* atch, const char *s);
 static int writeline (ATChannel* atch, const char *s);
+static void outputLog(ATChannel* atch, int level, const char* format, ...);
 
 #define NS_PER_S (1000000000)
 static void setTimespecRelative(struct timespec *p_ts, long long msec)
@@ -288,7 +290,7 @@ static void processLine(ATChannel* atch, const char *line)
         break;
 
         default: /* this should never be reached */
-            RLOGE("Unsupported AT command type %d\n", atch->impl->type);
+            RLOGE(atch, "Unsupported AT command type %d.", atch->impl->type);
             handleUnsolicited(atch, line);
         break;
     }
@@ -369,7 +371,7 @@ static const char *readline(ATChannel* atch)
 
     while (p_eol == NULL) {
         if (0 == MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->ATBuffer)) {
-            RLOGE("ERROR: Input line exceeded buffer\n");
+            RLOGE(atch, "ERROR: Input line exceeded buffer.");
             /* ditch buffer and start over again */
             atch->impl->ATBufferCur = atch->impl->ATBuffer;
             *atch->impl->ATBufferCur = '\0';
@@ -382,7 +384,7 @@ static const char *readline(ATChannel* atch)
         } while (count < 0 && errno == EINTR);
 
         if (count > 0) {
-            AT_DUMP( "<< ", p_read, count );
+            AT_DUMP( atch, "<< ", p_read, count );
 
             p_read[count] = '\0';
 
@@ -395,9 +397,9 @@ static const char *readline(ATChannel* atch)
         } else if (count <= 0) {
             /* read error encountered or EOF reached */
             if(count == 0) {
-                RLOGD("atchannel: EOF reached");
+                RLOGD(atch, "atchannel: EOF reached.");
             } else {
-                RLOGD("atchannel: read error %s", strerror(errno));
+                RLOGD(atch, "atchannel: read error %s.", strerror(errno));
             }
             return NULL;
         }
@@ -410,7 +412,7 @@ static const char *readline(ATChannel* atch)
     atch->impl->ATBufferCur = p_eol + 1; /* this will always be <= p_read,    */
                               /* and there will be a \0 at *p_read */
 
-    RLOGD("AT< %s\n", ret);
+    RLOGD(atch, "AT< %s", ret);
     return ret;
 }
 
@@ -491,9 +493,9 @@ static int writeline (ATChannel* atch, const char *s)
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
-    RLOGD("AT> %s\n", s);
+    RLOGD(atch, "AT> %s", s);
 
-    AT_DUMP( ">> ", s, strlen(s) );
+    AT_DUMP( atch, ">> ", s, strlen(s) );
 
     /* the main string */
     while (cur < len) {
@@ -530,9 +532,9 @@ static int writeCtrlZ (ATChannel* atch, const char *s)
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
-    RLOGD("AT> %s^Z\n", s);
+    RLOGD(atch, "AT> %s^Z", s);
 
-    AT_DUMP( ">* ", s, strlen(s) );
+    AT_DUMP( atch, ">* ", s, strlen(s) );
 
     /* the main string */
     while (cur < len) {
@@ -578,7 +580,7 @@ ATReturn  at_open(ATChannel* atch)
 
     fd = open(atch->path, O_RDWR);
     if (fd < 0) {
-        RLOGE("opening port %s failed.", atch->path);
+        RLOGE(atch, "opening port %s failed.", atch->path);
         return AT_ERROR_GENERIC;
     }
     atch->fd = fd;
@@ -974,3 +976,22 @@ AT_CME_Error at_get_cme_error(const ATResponse *p_response)
     return (AT_CME_Error) ret;
 }
 
+
+static void outputLog(ATChannel* atch, int level, const char* format, ...)
+{
+    if (!atch->log) {
+        return;
+    }
+    if (atch->logLevel < level) {
+        return;
+    }
+
+    char buff[1024];
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(buff, sizeof(buff), format, ap);
+    va_end(ap);
+    atch->log(atch, level, buff);
+
+    return;
+}
