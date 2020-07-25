@@ -32,6 +32,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #define LOG_NDEBUG 0
 #define LOG_TAG "AT"
@@ -40,8 +41,8 @@
 
 
 #define NUM_ELEMS(x) (sizeof(x)/sizeof((x)[0]))
-#define RLOGD(atch, ...) if(atch && atch->log){ atch->log(atch, LOG_DEBUG, __VA_ARGS__); }
-#define RLOGE(atch, ...) if(atch && atch->log){ atch->log(atch, LOG_ERR, __VA_ARGS__); }
+#define RLOGD(atch, ...) outputLog(atch, LOG_DEBUG, __VA_ARGS__)
+#define RLOGE(atch, ...) outputLog(atch, LOG_ERR, __VA_ARGS__)
 
 #if AT_DEBUG
 void  AT_DUMP(ATChannel* atch, const char*  prefix, const char*  buff, int  len)
@@ -89,6 +90,7 @@ struct ATChannelImpl {
 static void onReaderClosed(ATChannel* atch);
 static int writeCtrlZ (ATChannel* atch, const char *s);
 static int writeline (ATChannel* atch, const char *s);
+static void outputLog(ATChannel* atch, int level, const char* format, ...);
 
 #define NS_PER_S (1000000000)
 static void setTimespecRelative(struct timespec *p_ts, long long msec)
@@ -974,3 +976,22 @@ AT_CME_Error at_get_cme_error(const ATResponse *p_response)
     return (AT_CME_Error) ret;
 }
 
+
+static void outputLog(ATChannel* atch, int level, const char* format, ...)
+{
+    if (!atch->log) {
+        return;
+    }
+    if (atch->logLevel < level) {
+        return;
+    }
+
+    char buff[1024];
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(buff, sizeof(buff), format, ap);
+    va_end(ap);
+    atch->log(atch, level, buff);
+
+    return;
+}

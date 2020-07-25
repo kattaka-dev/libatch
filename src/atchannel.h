@@ -87,7 +87,7 @@ typedef void (*ATOnTimeoutHandler)(ATChannel* atch);
    channel is already closed */
 typedef void (*ATOnCloseHandler)(ATChannel* atch);
 
-typedef void (*ATLog)(ATChannel* atch, int level, const char* format, ...);
+typedef void (*ATLog)(ATChannel* atch, int level, const char* message);
 
 typedef struct ATChannelImpl ATChannelImpl;
 
@@ -100,6 +100,7 @@ struct ATChannel {
     ATOnTimeoutHandler onTimeoutHandler;
     ATOnCloseHandler onCloseHandler;
     ATLog log;
+    int logLevel;
     uintptr_t param;
     ATChannelImpl* impl;
 };
