@@ -79,7 +79,7 @@ static void (*s_onTimeout)(void) = NULL;
 static void (*s_onReaderClosed)(void) = NULL;
 static int s_readerClosed;
 
-static void onReaderClosed();
+static void onReaderClosed(void);
 static int writeCtrlZ (const char *s);
 static int writeline (const char *s);
 
@@ -319,7 +319,7 @@ static char * findNextEOL(char *cur)
  * have buffered stdio.
  */
 
-static const char *readline()
+static const char *readline(void)
 {
     ssize_t count;
 
@@ -407,7 +407,7 @@ static const char *readline()
 }
 
 
-static void onReaderClosed()
+static void onReaderClosed(void)
 {
     if (s_onReaderClosed != NULL && s_readerClosed == 0) {
 
@@ -550,7 +550,7 @@ static int writeCtrlZ (const char *s)
     return 0;
 }
 
-static void clearPendingCommand()
+static void clearPendingCommand(void)
 {
     if (sp_response != NULL) {
         at_response_free(sp_response);
@@ -595,7 +595,7 @@ int at_open(int fd, ATUnsolHandler h)
 }
 
 /* FIXME is it ok to call this from the reader and the command thread? */
-void at_close()
+void at_close(void)
 {
     if (s_fd >= 0) {
         close(s_fd);
@@ -613,7 +613,7 @@ void at_close()
     /* the reader thread should eventually die */
 }
 
-static ATResponse * at_response_new()
+static ATResponse * at_response_new(void)
 {
     return (ATResponse *) calloc(1, sizeof(ATResponse));
 }
@@ -886,7 +886,7 @@ void at_set_on_reader_closed(void (*onClose)(void))
  * Used to ensure channel has start up and is active
  */
 
-int at_handshake()
+int at_handshake(void)
 {
     int i;
     int err = 0;
