@@ -42,7 +42,7 @@
 #define RLOGD(atch, ...)
 #define RLOGE(atch, ...)
 
-#define MAX_AT_RESPONSE (8 * 1024)
+#define MAX_AT_RESPONSE ((size_t)(8 * 1024))
 #define HANDSHAKE_RETRY_COUNT 8
 #define HANDSHAKE_TIMEOUT_MSEC 250
 
