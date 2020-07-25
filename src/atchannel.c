@@ -83,8 +83,6 @@ struct ATChannelImpl {
     const char *s_smsPDU;
     ATResponse *sp_response;
 
-    ATOnTimeoutHandler s_onTimeout;
-    ATOnCloseHandler s_onReaderClosed;
     int s_readerClosed;
 };
 
@@ -419,7 +417,7 @@ static const char *readline(ATChannel* atch)
 
 static void onReaderClosed(ATChannel* atch)
 {
-    if (atch->impl->s_onReaderClosed != NULL && atch->impl->s_readerClosed == 0) {
+    if (atch->onCloseHandler != NULL && atch->impl->s_readerClosed == 0) {
 
         pthread_mutex_lock(&atch->impl->s_commandmutex);
 
@@ -429,7 +427,7 @@ static void onReaderClosed(ATChannel* atch)
 
         pthread_mutex_unlock(&atch->impl->s_commandmutex);
 
-        atch->impl->s_onReaderClosed(atch);
+        atch->onCloseHandler(atch);
     }
 }
 
@@ -765,8 +763,8 @@ static int at_send_command_full (ATChannel* atch, const char *command, ATCommand
 
     pthread_mutex_unlock(&atch->impl->s_commandmutex);
 
-    if (err == AT_ERROR_TIMEOUT && atch->impl->s_onTimeout != NULL) {
-        atch->impl->s_onTimeout(atch);
+    if (err == AT_ERROR_TIMEOUT && atch->onTimeoutHandler != NULL) {
+        atch->onTimeoutHandler(atch);
     }
 
     return err;
@@ -872,25 +870,6 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
                                     NULL, 0, pp_outResponse);
 
     return err;
-}
-
-
-/** This callback is invoked on the command thread */
-void at_set_on_timeout(ATChannel* atch, ATOnTimeoutHandler onTimeout)
-{
-    atch->impl->s_onTimeout = onTimeout;
-}
-
-/**
- *  This callback is invoked on the reader thread (like ATUnsolHandler)
- *  when the input stream closes before you call at_close
- *  (not when you call at_close())
- *  You should still call at_close()
- */
-
-void at_set_on_reader_closed(ATChannel* atch, ATOnCloseHandler onClose)
-{
-    atch->impl->s_onReaderClosed = onClose;
 }
 
 

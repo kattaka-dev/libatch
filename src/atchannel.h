@@ -103,9 +103,6 @@ struct ATChannel {
 ATReturn at_open(ATChannel* atch);
 void at_close(ATChannel* atch);
 
-void at_set_on_timeout(ATChannel* atch, ATOnTimeoutHandler onTimeout);
-void at_set_on_reader_closed(ATChannel* atch, ATOnCloseHandler onClose);
-
 ATReturn at_send_command_singleline (ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
