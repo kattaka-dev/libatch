@@ -69,19 +69,23 @@ typedef struct {
  */
 typedef void (*ATUnsolHandler)(const char *s, const char *sms_pdu);
 
-ATReturn at_open(int fd, ATUnsolHandler h);
-void at_close(void);
-
 /* This callback is invoked on the command thread.
    You should reset or handshake here to avoid getting out of sync */
-void at_set_on_timeout(void (*onTimeout)(void));
+typedef void (*ATOnTimeoutHandler)(void);
+
 /* This callback is invoked on the reader thread (like ATUnsolHandler)
    when the input stream closes before you call at_close
    (not when you call at_close())
    You should still call at_close()
    It may also be invoked immediately from the current thread if the read
    channel is already closed */
-void at_set_on_reader_closed(void (*onClose)(void));
+typedef void (*ATOnCloseHandler)(void);
+
+ATReturn at_open(int fd, ATUnsolHandler h);
+void at_close(void);
+
+void at_set_on_timeout(ATOnTimeoutHandler onTimeout);
+void at_set_on_reader_closed(ATOnCloseHandler onClose);
 
 ATReturn at_send_command_singleline (const char *command,
                                 const char *responsePrefix,

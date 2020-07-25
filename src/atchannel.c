@@ -86,8 +86,8 @@ static const char *s_responsePrefix = NULL;
 static const char *s_smsPDU = NULL;
 static ATResponse *sp_response = NULL;
 
-static void (*s_onTimeout)(void) = NULL;
-static void (*s_onReaderClosed)(void) = NULL;
+static ATOnTimeoutHandler s_onTimeout = NULL;
+static ATOnCloseHandler s_onReaderClosed = NULL;
 static int s_readerClosed;
 
 static void onReaderClosed(void);
@@ -874,7 +874,7 @@ ATReturn at_send_command_multiline (const char *command,
 
 
 /** This callback is invoked on the command thread */
-void at_set_on_timeout(void (*onTimeout)(void))
+void at_set_on_timeout(ATOnTimeoutHandler onTimeout)
 {
     s_onTimeout = onTimeout;
 }
@@ -886,7 +886,7 @@ void at_set_on_timeout(void (*onTimeout)(void))
  *  You should still call at_close()
  */
 
-void at_set_on_reader_closed(void (*onClose)(void))
+void at_set_on_reader_closed(ATOnCloseHandler onClose)
 {
     s_onReaderClosed = onClose;
 }
