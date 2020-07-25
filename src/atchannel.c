@@ -362,7 +362,7 @@ static const char *readline(void)
     }
 
     while (p_eol == NULL) {
-        if (0 == MAX_AT_RESPONSE - (p_read - s_ATBuffer)) {
+        if (0 == MAX_AT_RESPONSE - (size_t)(p_read - s_ATBuffer)) {
             RLOGE("ERROR: Input line exceeded buffer\n");
             /* ditch buffer and start over again */
             s_ATBufferCur = s_ATBuffer;
@@ -372,7 +372,7 @@ static const char *readline(void)
 
         do {
             count = read(s_fd, p_read,
-                            MAX_AT_RESPONSE - (p_read - s_ATBuffer));
+                            MAX_AT_RESPONSE - (size_t)(p_read - s_ATBuffer));
         } while (count < 0 && errno == EINTR);
 
         if (count > 0) {
@@ -497,7 +497,7 @@ static int writeline (const char *s)
             return AT_ERROR_GENERIC;
         }
 
-        cur += written;
+        cur += (size_t)written;
     }
 
     /* the \r  */
@@ -536,7 +536,7 @@ static int writeCtrlZ (const char *s)
             return AT_ERROR_GENERIC;
         }
 
-        cur += written;
+        cur += (size_t)written;
     }
 
     /* the ^Z  */
