@@ -290,7 +290,7 @@ static void processLine(ATChannel* atch, const char *line)
         break;
 
         default: /* this should never be reached */
-            RLOGE(atch, "Unsupported AT command type %d", atch->impl->type);
+            RLOGE(atch, "Unsupported AT command type %d.", atch->impl->type);
             handleUnsolicited(atch, line);
         break;
     }
@@ -371,7 +371,7 @@ static const char *readline(ATChannel* atch)
 
     while (p_eol == NULL) {
         if (0 == MAX_AT_RESPONSE - (size_t)(p_read - atch->impl->ATBuffer)) {
-            RLOGE(atch, "ERROR: Input line exceeded buffer");
+            RLOGE(atch, "ERROR: Input line exceeded buffer.");
             /* ditch buffer and start over again */
             atch->impl->ATBufferCur = atch->impl->ATBuffer;
             *atch->impl->ATBufferCur = '\0';
@@ -397,9 +397,9 @@ static const char *readline(ATChannel* atch)
         } else if (count <= 0) {
             /* read error encountered or EOF reached */
             if(count == 0) {
-                RLOGD(atch, "atchannel: EOF reached");
+                RLOGD(atch, "atchannel: EOF reached.");
             } else {
-                RLOGD(atch, "atchannel: read error %s", strerror(errno));
+                RLOGD(atch, "atchannel: read error %s.", strerror(errno));
             }
             return NULL;
         }
