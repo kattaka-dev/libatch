@@ -581,6 +581,7 @@ ATReturn  at_open(ATChannel* atch)
     int ret;
     pthread_attr_t attr;
 
+    atch->impl = calloc(1, sizeof(*atch->impl));
     atch->impl->tid_reader = 0;
     atch->impl->ATBufferCur = atch->impl->ATBuffer;
     pthread_mutex_init(&atch->impl->commandmutex, NULL);
@@ -594,9 +595,11 @@ ATReturn  at_open(ATChannel* atch)
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    ret = pthread_create(&atch->impl->tid_reader, &attr, readerLoop, &attr);
+    ret = pthread_create(&atch->impl->tid_reader, &attr, readerLoop, atch);
 
     if (ret < 0) {
+        free(atch->impl);
+        atch->impl = NULL;
         perror ("pthread_create");
         return AT_ERROR_GENERIC;
     }
@@ -620,6 +623,9 @@ void at_close(ATChannel* atch)
     pthread_cond_signal(&atch->impl->commandcond);
 
     pthread_mutex_unlock(&atch->impl->commandmutex);
+
+    free(atch->impl);
+    atch->impl = NULL;
 
     /* the reader thread should eventually die */
 }
