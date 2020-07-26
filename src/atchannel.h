@@ -108,7 +108,8 @@ struct ATChannel {
 
 ATReturn at_open(ATChannel* atch);
 ATReturn at_attach(ATChannel* atch);
-void at_close(ATChannel* atch);
+void at_detach(ATChannel* atch);
+ATReturn at_close(ATChannel* atch);
 
 ATReturn at_send_command_singleline (ATChannel* atch,
                                 const char *command,

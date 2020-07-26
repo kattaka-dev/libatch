@@ -680,13 +680,11 @@ ATReturn  at_attach(ATChannel* atch)
     return AT_SUCCESS;
 }
 
-/* FIXME is it ok to call this from the reader and the command thread? */
-void at_close(ATChannel* atch)
+void at_detach(ATChannel* atch)
 {
-    if (atch->fd >= 0) {
-        close(atch->fd);
-    }
-    atch->fd = -1;
+    fdatasync(atch->fd);
+    pthread_cancel(atch->impl->tid_reader);
+    onReaderClosed(atch);
 
     pthread_mutex_lock(&atch->impl->commandmutex);
 
@@ -700,6 +698,18 @@ void at_close(ATChannel* atch)
     atch->impl = NULL;
 
     /* the reader thread should eventually die */
+}
+
+/* FIXME is it ok to call this from the reader and the command thread? */
+ATReturn at_close(ATChannel* atch)
+{
+    at_detach(atch);
+    if (atch->fd >= 0) {
+        close(atch->fd);
+    }
+    atch->fd = -1;
+
+    return AT_SUCCESS;
 }
 
 static ATResponse * at_response_new(void)
