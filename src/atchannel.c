@@ -682,6 +682,10 @@ ATReturn  at_attach(ATChannel* atch)
 
 void at_detach(ATChannel* atch)
 {
+    fdatasync(atch->fd);
+    pthread_cancel(atch->impl->tid_reader);
+    onReaderClosed(atch);
+
     pthread_mutex_lock(&atch->impl->commandmutex);
 
     atch->impl->readerClosed = 1;
