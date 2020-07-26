@@ -149,7 +149,7 @@ int at_tok_nexthexint(char **p_cur, int *p_out)
     return at_tok_nextint_base(p_cur, p_out, 16, 1);
 }
 
-int at_tok_nextbool(char **p_cur, char *p_out)
+int at_tok_nextbool(char **p_cur, bool *p_out)
 {
     int ret;
     int result;
@@ -166,7 +166,7 @@ int at_tok_nextbool(char **p_cur, char *p_out)
     }
 
     if (p_out != NULL) {
-        *p_out = (char)result;
+        *p_out = !!result;
     }
 
     return ret;
