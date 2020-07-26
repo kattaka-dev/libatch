@@ -25,6 +25,7 @@ extern "C" {
 
 #include <termios.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <syslog.h>
 
 /* define AT_DEBUG to send AT traffic to /tmp/radio-at.log" */
@@ -59,7 +60,7 @@ typedef struct ATLine  {
 
 /** Free this with at_response_free() */
 typedef struct {
-    int success;              /* true if final response indicates
+    bool success;              /* true if final response indicates
                                     success (eg "OK") */
     char *finalResponse;      /* eg OK, ERROR */
     ATLine  *p_intermediates; /* any intermediate responses */
