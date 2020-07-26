@@ -94,8 +94,8 @@ typedef struct ATChannelImpl ATChannelImpl;
 
 struct ATChannel {
     const char* path;
-    tcflag_t lflag;
     int bitrate;
+    tcflag_t lflag;
     int fd;
     ATUnsolHandler unsolHandler;
     ATOnTimeoutHandler onTimeoutHandler;
