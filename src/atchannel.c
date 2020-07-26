@@ -208,17 +208,17 @@ static const char * s_smsUnsoliciteds[] = {
     "+CDS:",
     "+CBM:"
 };
-static int isSMSUnsolicited(const char *line)
+static bool isSMSUnsolicited(const char *line)
 {
     size_t i;
 
     for (i = 0 ; i < NUM_ELEMS(s_smsUnsoliciteds) ; i++) {
         if (strStartsWith(line, s_smsUnsoliciteds[i])) {
-            return 1;
+            return true;
         }
     }
 
-    return 0;
+    return false;
 }
 
 
