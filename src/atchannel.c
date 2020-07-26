@@ -31,7 +31,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
-#include <stdbool.h>
 #include <stdarg.h>
 
 #define LOG_NDEBUG 0
@@ -246,10 +245,10 @@ static void processLine(ATChannel* atch, const char *line)
         /* no command pending */
         handleUnsolicited(atch, line);
     } else if (isFinalResponseSuccess(line)) {
-        atch->impl->p_response->success = 1;
+        atch->impl->p_response->success = true;
         handleFinalResponse(atch, line);
     } else if (isFinalResponseError(line)) {
-        atch->impl->p_response->success = 0;
+        atch->impl->p_response->success = false;
         handleFinalResponse(atch, line);
     } else if (atch->impl->smsPDU != NULL && 0 == strcmp(line, "> ")) {
         // See eg. TS 27.005 4.3
@@ -829,7 +828,7 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
                                     NULL, 0, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
-        && (*pp_outResponse)->success > 0
+        && (*pp_outResponse)->success
         && (*pp_outResponse)->p_intermediates == NULL
     ) {
         /* successful command must have an intermediate response */
@@ -851,7 +850,7 @@ ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
                                     NULL, 0, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
-        && (*pp_outResponse)->success > 0
+        && (*pp_outResponse)->success
         && (*pp_outResponse)->p_intermediates == NULL
     ) {
         /* successful command must have an intermediate response */
@@ -875,7 +874,7 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command,
                                     pdu, 0, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
-        && (*pp_outResponse)->success > 0
+        && (*pp_outResponse)->success
         && (*pp_outResponse)->p_intermediates == NULL
     ) {
         /* successful command must have an intermediate response */
@@ -950,7 +949,7 @@ AT_CME_Error at_get_cme_error(const ATResponse *p_response)
     int err;
     char *p_cur;
 
-    if (p_response->success > 0) {
+    if (p_response->success) {
         return CME_SUCCESS;
     }
 
