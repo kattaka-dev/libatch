@@ -711,7 +711,11 @@ ATReturn at_detach(ATChannel* atch)
 /* FIXME is it ok to call this from the reader and the command thread? */
 ATReturn at_close(ATChannel* atch)
 {
-    at_detach(atch);
+    ATReturn ret = 0;
+    ret = at_detach(atch);
+    if (ret != AT_SUCCESS) {
+        return ret;
+    }
     if (atch->fd >= 0) {
         close(atch->fd);
     }
