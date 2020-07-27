@@ -640,7 +640,13 @@ ATReturn  at_open(ATChannel* atch)
     ios.c_lflag = atch->lflag;
     tcsetattr(fd, TCSANOW, &ios);
 
-    return at_attach(atch);
+    ATReturn ret = 0;
+    ret = at_attach(atch);
+    if (ret < 0) {
+        close(atch->fd);
+    }
+
+    return ret;
 }
 
 
