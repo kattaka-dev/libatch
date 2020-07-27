@@ -822,11 +822,11 @@ static void reverseIntermediates(ATResponse *p_response)
  * timeoutMsec == 0 means infinite timeout
  */
 
-static int at_send_command_full_nolock (ATChannel* atch, const char *command, ATCommandType type,
+static ATReturn at_send_command_full_nolock (ATChannel* atch, const char *command, ATCommandType type,
                     const char *responsePrefix, const char *smspdu,
                     long long timeoutMsec, ATResponse **pp_outResponse)
 {
-    int err = 0;
+    ATReturn err = 0;
     struct timespec ts;
 
     if(atch->impl->p_response != NULL) {
@@ -877,7 +877,7 @@ static int at_send_command_full_nolock (ATChannel* atch, const char *command, AT
         goto error;
     }
 
-    err = 0;
+    err = AT_SUCCESS;
 error:
     clearPendingCommand(atch);
 
@@ -889,11 +889,11 @@ error:
  *
  * timeoutMsec == 0 means infinite timeout
  */
-static int at_send_command_full (ATChannel* atch, const char *command, ATCommandType type,
+static ATReturn at_send_command_full (ATChannel* atch, const char *command, ATCommandType type,
                     const char *responsePrefix, const char *smspdu,
                     long long timeoutMsec, ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
@@ -927,7 +927,7 @@ static int at_send_command_full (ATChannel* atch, const char *command, ATCommand
  */
 ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     err = at_send_command_full (atch, command, NO_RESULT, NULL,
                                     NULL, 0, pp_outResponse);
@@ -1026,7 +1026,7 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
 ATReturn at_handshake(ATChannel* atch)
 {
     int i;
-    int err = 0;
+    ATReturn err = 0;
 
     if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
