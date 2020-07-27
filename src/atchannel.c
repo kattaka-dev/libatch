@@ -927,6 +927,13 @@ static ATReturn at_send_command_full (ATChannel* atch, const char *command, ATCo
  */
 ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, NO_RESULT, NULL,
@@ -940,6 +947,13 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !responsePrefix || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
@@ -962,6 +976,13 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
 ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, NUMERIC, NULL,
@@ -986,6 +1007,13 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !pdu || !responsePrefix || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
@@ -1009,6 +1037,13 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !responsePrefix || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, MULTILINE, responsePrefix,
@@ -1025,6 +1060,13 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
 
 ATReturn at_handshake(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     int i;
     ATReturn err = 0;
 
