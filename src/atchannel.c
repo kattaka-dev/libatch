@@ -575,6 +575,19 @@ static void clearPendingCommand(ATChannel* atch)
 
 ATReturn  at_open(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+    if (!atch->path) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if ((atch->logLevel < 0) || (LOG_DEBUG < atch->logLevel)) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+
     struct bitrate_value {
         int bitrate;
         speed_t value;
@@ -656,6 +669,19 @@ ATReturn  at_open(ATChannel* atch)
  */
 ATReturn  at_attach(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+    if (atch->fd < 0) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if ((atch->logLevel < 0) || (LOG_DEBUG < atch->logLevel)) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+
     int ret;
     pthread_attr_t attr;
 
@@ -688,6 +714,13 @@ ATReturn  at_attach(ATChannel* atch)
 
 ATReturn at_detach(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     fdatasync(atch->fd);
     pthread_cancel(atch->impl->tid_reader);
     onReaderClosed(atch);
@@ -711,6 +744,13 @@ ATReturn at_detach(ATChannel* atch)
 /* FIXME is it ok to call this from the reader and the command thread? */
 ATReturn at_close(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn ret = 0;
     ret = at_detach(atch);
     if (ret != AT_SUCCESS) {
