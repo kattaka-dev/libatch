@@ -136,7 +136,7 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command, const char *
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
 
-void at_response_free(ATResponse *p_response);
+ATReturn at_response_free(ATResponse *p_response);
 
 typedef enum {
     CME_ERROR_NON_CME = -1,

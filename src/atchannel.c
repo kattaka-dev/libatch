@@ -719,11 +719,13 @@ static ATResponse * at_response_new(void)
     return (ATResponse *) calloc(1, sizeof(ATResponse));
 }
 
-void at_response_free(ATResponse *p_response)
+ATReturn at_response_free(ATResponse *p_response)
 {
     ATLine *p_line;
 
-    if (p_response == NULL) return;
+    if (p_response == NULL) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
 
     p_line = p_response->p_intermediates;
 
@@ -739,6 +741,8 @@ void at_response_free(ATResponse *p_response)
 
     free (p_response->finalResponse);
     free (p_response);
+
+    return AT_SUCCESS;
 }
 
 /**
