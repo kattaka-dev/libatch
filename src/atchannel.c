@@ -680,7 +680,7 @@ ATReturn  at_attach(ATChannel* atch)
     return AT_SUCCESS;
 }
 
-void at_detach(ATChannel* atch)
+ATReturn at_detach(ATChannel* atch)
 {
     fdatasync(atch->fd);
     pthread_cancel(atch->impl->tid_reader);
@@ -698,6 +698,8 @@ void at_detach(ATChannel* atch)
     atch->impl = NULL;
 
     /* the reader thread should eventually die */
+
+    return AT_SUCCESS;
 }
 
 /* FIXME is it ok to call this from the reader and the command thread? */
