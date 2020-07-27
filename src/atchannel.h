@@ -38,17 +38,19 @@ extern void  AT_DUMP(ATChannel* atch, const char* prefix, const char*  buff, int
 #endif
 
 typedef enum {
-    AT_SUCCESS =                 0,
-    AT_ERROR_GENERIC =          -1,
-    AT_ERROR_COMMAND_PENDING =  -2,
-    AT_ERROR_CHANNEL_CLOSED =   -3,
-    AT_ERROR_TIMEOUT =          -4,
-    AT_ERROR_INVALID_THREAD =   -5, /* AT commands may not be issued from
-                                       reader thread (or unsolicited response
-                                       callback */
-    AT_ERROR_INVALID_RESPONSE = -6, /* eg an at_send_command_singleline that
-                                       did not get back an intermediate
-                                       response */
+    AT_SUCCESS =                  0,
+    AT_ERROR_GENERIC =           -1,
+    AT_ERROR_COMMAND_PENDING =   -2,
+    AT_ERROR_CHANNEL_CLOSED =    -3,
+    AT_ERROR_TIMEOUT =           -4,
+    AT_ERROR_INVALID_THREAD =    -5, /* AT commands may not be issued from
+                                        reader thread (or unsolicited response
+                                        callback */
+    AT_ERROR_INVALID_RESPONSE =  -6, /* eg an at_send_command_singleline that
+                                        did not get back an intermediate
+                                        response */
+    AT_ERROR_INVALID_ARGUMENT =  -7,
+    AT_ERROR_INVALID_OPERATION = -8,
 } ATReturn;
 
 
@@ -108,7 +110,7 @@ struct ATChannel {
 
 ATReturn at_open(ATChannel* atch);
 ATReturn at_attach(ATChannel* atch);
-void at_detach(ATChannel* atch);
+ATReturn at_detach(ATChannel* atch);
 ATReturn at_close(ATChannel* atch);
 
 ATReturn at_send_command_singleline (ATChannel* atch,
@@ -134,7 +136,7 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command, const char *
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
 
-void at_response_free(ATResponse *p_response);
+ATReturn at_response_free(ATResponse *p_response);
 
 typedef enum {
     CME_ERROR_NON_CME = -1,

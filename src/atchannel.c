@@ -87,8 +87,8 @@ struct ATChannelImpl {
 };
 
 static void onReaderClosed(ATChannel* atch);
-static int writeCtrlZ (ATChannel* atch, const char *s);
-static int writeline (ATChannel* atch, const char *s);
+static ATReturn writeCtrlZ (ATChannel* atch, const char *s);
+static ATReturn writeline (ATChannel* atch, const char *s);
 static void outputLog(ATChannel* atch, int level, const char* format, ...);
 
 #define NS_PER_S (1000000000)
@@ -477,12 +477,12 @@ static void *readerLoop(void *arg)
 
 /**
  * Sends string s to the radio with a \r appended.
- * Returns AT_ERROR_* on error, 0 on success
+ * Returns AT_ERROR_* on error, AT_SUCCESS on success
  *
  * This function exists because as of writing, android libc does not
  * have buffered stdio.
  */
-static int writeline (ATChannel* atch, const char *s)
+static ATReturn writeline (ATChannel* atch, const char *s)
 {
     size_t cur = 0;
     size_t len = strlen(s);
@@ -519,9 +519,10 @@ static int writeline (ATChannel* atch, const char *s)
         return AT_ERROR_GENERIC;
     }
 
-    return 0;
+    return AT_SUCCESS;
 }
-static int writeCtrlZ (ATChannel* atch, const char *s)
+
+static ATReturn writeCtrlZ (ATChannel* atch, const char *s)
 {
     size_t cur = 0;
     size_t len = strlen(s);
@@ -558,7 +559,7 @@ static int writeCtrlZ (ATChannel* atch, const char *s)
         return AT_ERROR_GENERIC;
     }
 
-    return 0;
+    return AT_SUCCESS;
 }
 
 static void clearPendingCommand(ATChannel* atch)
@@ -575,6 +576,19 @@ static void clearPendingCommand(ATChannel* atch)
 
 ATReturn  at_open(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+    if (!atch->path) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if ((atch->logLevel < 0) || (LOG_DEBUG < atch->logLevel)) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+
     struct bitrate_value {
         int bitrate;
         speed_t value;
@@ -640,7 +654,13 @@ ATReturn  at_open(ATChannel* atch)
     ios.c_lflag = atch->lflag;
     tcsetattr(fd, TCSANOW, &ios);
 
-    return at_attach(atch);
+    ATReturn ret = 0;
+    ret = at_attach(atch);
+    if (ret < 0) {
+        close(atch->fd);
+    }
+
+    return ret;
 }
 
 
@@ -650,6 +670,19 @@ ATReturn  at_open(ATChannel* atch)
  */
 ATReturn  at_attach(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+    if (atch->fd < 0) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if ((atch->logLevel < 0) || (LOG_DEBUG < atch->logLevel)) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+
     int ret;
     pthread_attr_t attr;
 
@@ -680,8 +713,15 @@ ATReturn  at_attach(ATChannel* atch)
     return AT_SUCCESS;
 }
 
-void at_detach(ATChannel* atch)
+ATReturn at_detach(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     fdatasync(atch->fd);
     pthread_cancel(atch->impl->tid_reader);
     onReaderClosed(atch);
@@ -698,12 +738,25 @@ void at_detach(ATChannel* atch)
     atch->impl = NULL;
 
     /* the reader thread should eventually die */
+
+    return AT_SUCCESS;
 }
 
 /* FIXME is it ok to call this from the reader and the command thread? */
 ATReturn at_close(ATChannel* atch)
 {
-    at_detach(atch);
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
+    ATReturn ret = 0;
+    ret = at_detach(atch);
+    if (ret != AT_SUCCESS) {
+        return ret;
+    }
     if (atch->fd >= 0) {
         close(atch->fd);
     }
@@ -717,11 +770,13 @@ static ATResponse * at_response_new(void)
     return (ATResponse *) calloc(1, sizeof(ATResponse));
 }
 
-void at_response_free(ATResponse *p_response)
+ATReturn at_response_free(ATResponse *p_response)
 {
     ATLine *p_line;
 
-    if (p_response == NULL) return;
+    if (p_response == NULL) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
 
     p_line = p_response->p_intermediates;
 
@@ -737,6 +792,8 @@ void at_response_free(ATResponse *p_response)
 
     free (p_response->finalResponse);
     free (p_response);
+
+    return AT_SUCCESS;
 }
 
 /**
@@ -765,11 +822,11 @@ static void reverseIntermediates(ATResponse *p_response)
  * timeoutMsec == 0 means infinite timeout
  */
 
-static int at_send_command_full_nolock (ATChannel* atch, const char *command, ATCommandType type,
+static ATReturn at_send_command_full_nolock (ATChannel* atch, const char *command, ATCommandType type,
                     const char *responsePrefix, const char *smspdu,
                     long long timeoutMsec, ATResponse **pp_outResponse)
 {
-    int err = 0;
+    ATReturn err = 0;
     struct timespec ts;
 
     if(atch->impl->p_response != NULL) {
@@ -820,7 +877,7 @@ static int at_send_command_full_nolock (ATChannel* atch, const char *command, AT
         goto error;
     }
 
-    err = 0;
+    err = AT_SUCCESS;
 error:
     clearPendingCommand(atch);
 
@@ -832,11 +889,11 @@ error:
  *
  * timeoutMsec == 0 means infinite timeout
  */
-static int at_send_command_full (ATChannel* atch, const char *command, ATCommandType type,
+static ATReturn at_send_command_full (ATChannel* atch, const char *command, ATCommandType type,
                     const char *responsePrefix, const char *smspdu,
                     long long timeoutMsec, ATResponse **pp_outResponse)
 {
-    int err;
+    ATReturn err;
 
     if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
@@ -870,7 +927,14 @@ static int at_send_command_full (ATChannel* atch, const char *command, ATCommand
  */
 ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse)
 {
-    int err;
+    if (!atch || !command || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
+    ATReturn err;
 
     err = at_send_command_full (atch, command, NO_RESULT, NULL,
                                     NULL, 0, pp_outResponse);
@@ -883,6 +947,13 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !responsePrefix || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
@@ -905,6 +976,13 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
 ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, NUMERIC, NULL,
@@ -929,6 +1007,13 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !pdu || !responsePrefix || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
@@ -952,6 +1037,13 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                  ATResponse **pp_outResponse)
 {
+    if (!atch || !command || !responsePrefix || !pp_outResponse) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     ATReturn err;
 
     err = at_send_command_full (atch, command, MULTILINE, responsePrefix,
@@ -968,8 +1060,15 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
 
 ATReturn at_handshake(ATChannel* atch)
 {
+    if (!atch) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (!atch->impl) {
+        return AT_ERROR_INVALID_OPERATION;
+    }
+
     int i;
-    int err = 0;
+    ATReturn err = 0;
 
     if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
