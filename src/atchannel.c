@@ -87,8 +87,8 @@ struct ATChannelImpl {
 };
 
 static void onReaderClosed(ATChannel* atch);
-static int writeCtrlZ (ATChannel* atch, const char *s);
-static int writeline (ATChannel* atch, const char *s);
+static ATReturn writeCtrlZ (ATChannel* atch, const char *s);
+static ATReturn writeline (ATChannel* atch, const char *s);
 static void outputLog(ATChannel* atch, int level, const char* format, ...);
 
 #define NS_PER_S (1000000000)
@@ -477,12 +477,12 @@ static void *readerLoop(void *arg)
 
 /**
  * Sends string s to the radio with a \r appended.
- * Returns AT_ERROR_* on error, 0 on success
+ * Returns AT_ERROR_* on error, AT_SUCCESS on success
  *
  * This function exists because as of writing, android libc does not
  * have buffered stdio.
  */
-static int writeline (ATChannel* atch, const char *s)
+static ATReturn writeline (ATChannel* atch, const char *s)
 {
     size_t cur = 0;
     size_t len = strlen(s);
@@ -519,9 +519,10 @@ static int writeline (ATChannel* atch, const char *s)
         return AT_ERROR_GENERIC;
     }
 
-    return 0;
+    return AT_SUCCESS;
 }
-static int writeCtrlZ (ATChannel* atch, const char *s)
+
+static ATReturn writeCtrlZ (ATChannel* atch, const char *s)
 {
     size_t cur = 0;
     size_t len = strlen(s);
@@ -558,7 +559,7 @@ static int writeCtrlZ (ATChannel* atch, const char *s)
         return AT_ERROR_GENERIC;
     }
 
-    return 0;
+    return AT_SUCCESS;
 }
 
 static void clearPendingCommand(ATChannel* atch)
