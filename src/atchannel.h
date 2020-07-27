@@ -38,17 +38,19 @@ extern void  AT_DUMP(ATChannel* atch, const char* prefix, const char*  buff, int
 #endif
 
 typedef enum {
-    AT_SUCCESS =                 0,
-    AT_ERROR_GENERIC =          -1,
-    AT_ERROR_COMMAND_PENDING =  -2,
-    AT_ERROR_CHANNEL_CLOSED =   -3,
-    AT_ERROR_TIMEOUT =          -4,
-    AT_ERROR_INVALID_THREAD =   -5, /* AT commands may not be issued from
-                                       reader thread (or unsolicited response
-                                       callback */
-    AT_ERROR_INVALID_RESPONSE = -6, /* eg an at_send_command_singleline that
-                                       did not get back an intermediate
-                                       response */
+    AT_SUCCESS =                  0,
+    AT_ERROR_GENERIC =           -1,
+    AT_ERROR_COMMAND_PENDING =   -2,
+    AT_ERROR_CHANNEL_CLOSED =    -3,
+    AT_ERROR_TIMEOUT =           -4,
+    AT_ERROR_INVALID_THREAD =    -5, /* AT commands may not be issued from
+                                        reader thread (or unsolicited response
+                                        callback */
+    AT_ERROR_INVALID_RESPONSE =  -6, /* eg an at_send_command_singleline that
+                                        did not get back an intermediate
+                                        response */
+    AT_ERROR_INVALID_ARGUMENT =  -7,
+    AT_ERROR_INVALID_OPERATION = -8,
 } ATReturn;
 
 
