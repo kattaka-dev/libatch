@@ -987,7 +987,13 @@ ATReturn at_send_command_singleline_timeout (ATChannel* atch, const char *comman
 
 
 ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_numeric_timeout(atch, command, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_numeric_timeout (ATChannel* atch, const char *command,
+                                long long timeoutMsec, ATResponse **pp_outResponse)
 {
     if (!atch || !command || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -999,7 +1005,7 @@ ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, NUMERIC, NULL,
-                                    NULL, 0, pp_outResponse);
+                                    NULL, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success
