@@ -1024,7 +1024,16 @@ ATReturn at_send_command_numeric_timeout (ATChannel* atch, const char *command,
 ATReturn at_send_command_sms (ATChannel* atch, const char *command,
                                 const char *pdu,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_sms_timeout(atch, command, pdu, responsePrefix, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_sms_timeout (ATChannel* atch, const char *command,
+                                const char *pdu,
+                                const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse)
 {
     if (!atch || !command || !pdu || !responsePrefix || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -1036,7 +1045,7 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
-                                    pdu, 0, pp_outResponse);
+                                    pdu, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success

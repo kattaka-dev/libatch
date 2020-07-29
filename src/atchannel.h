@@ -147,6 +147,10 @@ ATReturn at_send_command_timeout (ATChannel* atch, const char *command, long lon
 ATReturn at_send_command_sms (ATChannel* atch, const char *command, const char *pdu,
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
+ATReturn at_send_command_sms_timeout (ATChannel* atch, const char *command, const char *pdu,
+                            const char *responsePrefix,
+                            long long timeoutMsec,
+                            ATResponse **pp_outResponse);
 
 ATReturn at_response_free(ATResponse *p_response);
 
