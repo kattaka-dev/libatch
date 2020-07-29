@@ -927,6 +927,11 @@ static ATReturn at_send_command_full (ATChannel* atch, const char *command, ATCo
  */
 ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse)
 {
+    return at_send_command_timeout(atch, command, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_timeout (ATChannel* atch, const char *command, long long timeoutMsec, ATResponse **pp_outResponse)
+{
     if (!atch || !command || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
     }
@@ -937,7 +942,7 @@ ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_
     ATReturn err;
 
     err = at_send_command_full (atch, command, NO_RESULT, NULL,
-                                    NULL, 0, pp_outResponse);
+                                    NULL, timeoutMsec, pp_outResponse);
 
     return err;
 }
@@ -945,7 +950,15 @@ ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_
 
 ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_singleline_timeout(atch, command, responsePrefix, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_singleline_timeout (ATChannel* atch, const char *command,
+                                const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse)
 {
     if (!atch || !command || !responsePrefix || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -957,7 +970,7 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
-                                    NULL, 0, pp_outResponse);
+                                    NULL, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success
@@ -974,7 +987,13 @@ ATReturn at_send_command_singleline (ATChannel* atch, const char *command,
 
 
 ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_numeric_timeout(atch, command, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_numeric_timeout (ATChannel* atch, const char *command,
+                                long long timeoutMsec, ATResponse **pp_outResponse)
 {
     if (!atch || !command || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -986,7 +1005,7 @@ ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, NUMERIC, NULL,
-                                    NULL, 0, pp_outResponse);
+                                    NULL, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success
@@ -1005,7 +1024,16 @@ ATReturn at_send_command_numeric (ATChannel* atch, const char *command,
 ATReturn at_send_command_sms (ATChannel* atch, const char *command,
                                 const char *pdu,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_sms_timeout(atch, command, pdu, responsePrefix, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_sms_timeout (ATChannel* atch, const char *command,
+                                const char *pdu,
+                                const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse)
 {
     if (!atch || !command || !pdu || !responsePrefix || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -1017,7 +1045,7 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
-                                    pdu, 0, pp_outResponse);
+                                    pdu, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
         && (*pp_outResponse)->success
@@ -1035,7 +1063,15 @@ ATReturn at_send_command_sms (ATChannel* atch, const char *command,
 
 ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_multiline_timeout(atch, command, responsePrefix, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_multiline_timeout (ATChannel* atch, const char *command,
+                                const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse)
 {
     if (!atch || !command || !responsePrefix || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -1047,7 +1083,7 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, MULTILINE, responsePrefix,
-                                    NULL, 0, pp_outResponse);
+                                    NULL, timeoutMsec, pp_outResponse);
 
     return err;
 }
