@@ -1063,7 +1063,15 @@ ATReturn at_send_command_sms_timeout (ATChannel* atch, const char *command,
 
 ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
                                 const char *responsePrefix,
-                                 ATResponse **pp_outResponse)
+                                ATResponse **pp_outResponse)
+{
+    return at_send_command_multiline_timeout(atch, command, responsePrefix, 0, pp_outResponse);
+}
+
+ATReturn at_send_command_multiline_timeout (ATChannel* atch, const char *command,
+                                const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse)
 {
     if (!atch || !command || !responsePrefix || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -1075,7 +1083,7 @@ ATReturn at_send_command_multiline (ATChannel* atch, const char *command,
     ATReturn err;
 
     err = at_send_command_full (atch, command, MULTILINE, responsePrefix,
-                                    NULL, 0, pp_outResponse);
+                                    NULL, timeoutMsec, pp_outResponse);
 
     return err;
 }

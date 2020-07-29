@@ -137,6 +137,11 @@ ATReturn at_send_command_multiline (ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
                                 ATResponse **pp_outResponse);
+ATReturn at_send_command_multiline_timeout (ATChannel* atch,
+                                const char *command,
+                                const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse);
 
 
 ATReturn at_handshake(ATChannel* atch);
