@@ -76,7 +76,8 @@ typedef struct ATChannel ATChannel;
  * "s" is the line, and "sms_pdu" is either NULL or the PDU response
  * for multi-line TS 27.005 SMS PDU responses (eg +CMT:)
  */
-typedef void (*ATUnsolHandler)(ATChannel* atch, const char *s, const char *sms_pdu);
+typedef void (*ATUnsolHandler)(ATChannel* atch, const char *s);
+typedef void (*ATUnsolSmsHandler)(ATChannel* atch, const char *s, const char *sms_pdu);
 
 /* This callback is invoked on the command thread.
    You should reset or handshake here to avoid getting out of sync */
@@ -100,6 +101,7 @@ struct ATChannel {
     tcflag_t lflag;
     int fd;
     ATUnsolHandler unsolHandler;
+    ATUnsolSmsHandler unsolSmsHandler;
     ATOnTimeoutHandler onTimeoutHandler;
     ATOnCloseHandler onCloseHandler;
     ATLog log;

@@ -233,7 +233,7 @@ static void handleFinalResponse(ATChannel* atch, const char *line)
 static void handleUnsolicited(ATChannel* atch, const char *line)
 {
     if (atch->unsolHandler != NULL) {
-        atch->unsolHandler(atch, line, NULL);
+        atch->unsolHandler(atch, line);
     }
 }
 
@@ -461,8 +461,8 @@ static void *readerLoop(void *arg)
                 break;
             }
 
-            if (atch->unsolHandler != NULL) {
-                atch->unsolHandler (atch, line1, line2);
+            if (atch->unsolSmsHandler != NULL) {
+                atch->unsolSmsHandler (atch, line1, line2);
             }
             free(line1);
         } else {
