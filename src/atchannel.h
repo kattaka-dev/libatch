@@ -144,7 +144,7 @@ ATReturn at_send_command_multiline_timeout (ATChannel* atch,
                                 ATResponse **pp_outResponse);
 
 
-ATReturn at_handshake(ATChannel* atch);
+ATReturn at_handshake(ATChannel* atch, const char* command, int retryCount, long long timeoutMsec);
 
 ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse);
 ATReturn at_send_command_timeout (ATChannel* atch, const char *command, long long timeoutMsec, ATResponse **pp_outResponse);

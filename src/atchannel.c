@@ -61,8 +61,6 @@ typedef enum {
 } ATCommandType;
 
 #define MAX_AT_RESPONSE ((size_t)(8 * 1024))
-#define HANDSHAKE_RETRY_COUNT (8)
-#define HANDSHAKE_TIMEOUT_MSEC (250)
 
 struct ATChannelImpl {
     pthread_t tid_reader;
@@ -1094,17 +1092,37 @@ ATReturn at_send_command_multiline_timeout (ATChannel* atch, const char *command
  * Used to ensure channel has start up and is active
  */
 
-ATReturn at_handshake(ATChannel* atch)
+ATReturn at_handshake(ATChannel* atch, const char* command, int retryCount, long long timeoutMsec)
 {
+    const char* HANDSHAKE_DEFAULT_COMMAND = "ATE0Q0V1";
+    const int HANDSHAKE_DEFAULT_RETRY_COUNT = 8;
+    const int HANDSHAKE_DEFAULT_TIMEOUT_MSEC = 250;
+
     if (!atch) {
         return AT_ERROR_INVALID_ARGUMENT;
     }
     if (!atch->impl) {
         return AT_ERROR_INVALID_OPERATION;
     }
+    if (retryCount < 0) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
+    if (timeoutMsec < 0) {
+        return AT_ERROR_INVALID_ARGUMENT;
+    }
 
     int i;
     ATReturn err = 0;
+
+    if (!command) {
+        command = HANDSHAKE_DEFAULT_COMMAND;
+    }
+    if (retryCount == 0) {
+        retryCount = HANDSHAKE_DEFAULT_RETRY_COUNT;
+    }
+    if (timeoutMsec == 0) {
+        timeoutMsec = HANDSHAKE_DEFAULT_TIMEOUT_MSEC;
+    }
 
     if (0 != pthread_equal(atch->impl->tid_reader, pthread_self())) {
         /* cannot be called from reader thread */
@@ -1113,10 +1131,10 @@ ATReturn at_handshake(ATChannel* atch)
 
     pthread_mutex_lock(&atch->impl->commandmutex);
 
-    for (i = 0 ; i < HANDSHAKE_RETRY_COUNT ; i++) {
+    for (i = 0 ; i < retryCount; i++) {
         /* some stacks start with verbose off */
-        err = at_send_command_full_nolock (atch, "ATE0Q0V1", NO_RESULT,
-                    NULL, NULL, HANDSHAKE_TIMEOUT_MSEC, NULL);
+        err = at_send_command_full_nolock (atch, command, NO_RESULT,
+                    NULL, NULL, timeoutMsec, NULL);
 
         if (err == 0) {
             break;
@@ -1127,7 +1145,7 @@ ATReturn at_handshake(ATChannel* atch)
         /* pause for a bit to let the input buffer drain any unmatched OK's
            (they will appear as extraneous unsolicited responses) */
 
-        sleepMsec(HANDSHAKE_TIMEOUT_MSEC);
+        sleepMsec(timeoutMsec);
     }
 
     pthread_mutex_unlock(&atch->impl->commandmutex);
