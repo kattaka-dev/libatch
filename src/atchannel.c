@@ -61,8 +61,6 @@ typedef enum {
 } ATCommandType;
 
 #define MAX_AT_RESPONSE ((size_t)(8 * 1024))
-#define HANDSHAKE_RETRY_COUNT (8)
-#define HANDSHAKE_TIMEOUT_MSEC (250)
 
 struct ATChannelImpl {
     pthread_t tid_reader;
@@ -1096,6 +1094,9 @@ ATReturn at_send_command_multiline_timeout (ATChannel* atch, const char *command
 
 ATReturn at_handshake(ATChannel* atch)
 {
+    const int HANDSHAKE_RETRY_COUNT = 8;
+    const int HANDSHAKE_TIMEOUT_MSEC = 250;
+
     if (!atch) {
         return AT_ERROR_INVALID_ARGUMENT;
     }
