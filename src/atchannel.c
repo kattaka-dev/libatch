@@ -138,7 +138,7 @@ static void addIntermediate(ATChannel* atch, const char *line)
 
 
 /**
- * returns 1 if line is a final response indicating error
+ * returns true if line is a final response indicating error
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
@@ -164,7 +164,7 @@ static bool isFinalResponseError(const char *line)
 }
 
 /**
- * returns 1 if line is a final response indicating success
+ * returns true if line is a final response indicating success
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
@@ -187,7 +187,7 @@ static bool isFinalResponseSuccess(const char *line)
 
 #if 0
 /**
- * returns 1 if line is a final response, either  error or success
+ * returns true if line is a final response, either  error or success
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
@@ -198,7 +198,7 @@ static bool isFinalResponse(const char *line)
 #endif  /* 0 */
 
 /**
- * returns 1 if line is the first line in (what will be) a two-line
+ * returns true if line is the first line in (what will be) a two-line
  * SMS unsolicited response
  */
 static const char * s_smsUnsoliciteds[] = {
