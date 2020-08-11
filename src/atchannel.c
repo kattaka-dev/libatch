@@ -81,7 +81,7 @@ struct ATChannelImpl {
     const char *smsPDU;
     ATResponse *p_response;
 
-    int readerClosed;
+    bool readerClosed;
 };
 
 static void onReaderClosed(ATChannel* atch);
@@ -138,7 +138,7 @@ static void addIntermediate(ATChannel* atch, const char *line)
 
 
 /**
- * returns 1 if line is a final response indicating error
+ * returns true if line is a final response indicating error
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
@@ -164,7 +164,7 @@ static bool isFinalResponseError(const char *line)
 }
 
 /**
- * returns 1 if line is a final response indicating success
+ * returns true if line is a final response indicating success
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
@@ -187,7 +187,7 @@ static bool isFinalResponseSuccess(const char *line)
 
 #if 0
 /**
- * returns 1 if line is a final response, either  error or success
+ * returns true if line is a final response, either  error or success
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
@@ -198,7 +198,7 @@ static bool isFinalResponse(const char *line)
 #endif  /* 0 */
 
 /**
- * returns 1 if line is the first line in (what will be) a two-line
+ * returns true if line is the first line in (what will be) a two-line
  * SMS unsolicited response
  */
 static const char * s_smsUnsoliciteds[] = {
@@ -416,11 +416,11 @@ static const char *readline(ATChannel* atch)
 
 static void onReaderClosed(ATChannel* atch)
 {
-    if (atch->onCloseHandler != NULL && atch->impl->readerClosed == 0) {
+    if (atch->onCloseHandler != NULL && !atch->impl->readerClosed) {
 
         pthread_mutex_lock(&atch->impl->commandmutex);
 
-        atch->impl->readerClosed = 1;
+        atch->impl->readerClosed = true;
 
         pthread_cond_signal(&atch->impl->commandcond);
 
@@ -486,7 +486,7 @@ static ATReturn writeline (ATChannel* atch, const char *s)
     size_t len = strlen(s);
     ssize_t written;
 
-    if (atch->fd < 0 || atch->impl->readerClosed > 0) {
+    if (atch->fd < 0 || atch->impl->readerClosed) {
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
@@ -526,7 +526,7 @@ static ATReturn writeCtrlZ (ATChannel* atch, const char *s)
     size_t len = strlen(s);
     ssize_t written;
 
-    if (atch->fd < 0 || atch->impl->readerClosed > 0) {
+    if (atch->fd < 0 || atch->impl->readerClosed) {
         return AT_ERROR_CHANNEL_CLOSED;
     }
 
@@ -664,7 +664,7 @@ ATReturn  at_open(ATChannel* atch)
 
 /**
  * Starts AT handler on stream "fd'
- * returns 0 on success, -1 on error
+ * returns AT_SUCCESS on success, AT_ERROR_* on error
  */
 ATReturn  at_attach(ATChannel* atch)
 {
@@ -693,7 +693,7 @@ ATReturn  at_attach(ATChannel* atch)
     atch->impl->responsePrefix = NULL;
     atch->impl->smsPDU = NULL;
     atch->impl->p_response = NULL;
-    atch->impl->readerClosed = 0;
+    atch->impl->readerClosed = false;
 
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -726,7 +726,7 @@ ATReturn at_detach(ATChannel* atch)
 
     pthread_mutex_lock(&atch->impl->commandmutex);
 
-    atch->impl->readerClosed = 1;
+    atch->impl->readerClosed = true;
 
     pthread_cond_signal(&atch->impl->commandcond);
 
@@ -847,7 +847,7 @@ static ATReturn at_send_command_full_nolock (ATChannel* atch, const char *comman
         setTimespecRelative(&ts, timeoutMsec);
     }
 
-    while (atch->impl->p_response->finalResponse == NULL && atch->impl->readerClosed == 0) {
+    while (atch->impl->p_response->finalResponse == NULL && !atch->impl->readerClosed) {
         if (timeoutMsec != 0) {
             err = pthread_cond_timedwait(&atch->impl->commandcond, &atch->impl->commandmutex, &ts);
         } else {
@@ -870,7 +870,7 @@ static ATReturn at_send_command_full_nolock (ATChannel* atch, const char *comman
 
     atch->impl->p_response = NULL;
 
-    if(atch->impl->readerClosed > 0) {
+    if(atch->impl->readerClosed) {
         err = AT_ERROR_CHANNEL_CLOSED;
         goto error;
     }
