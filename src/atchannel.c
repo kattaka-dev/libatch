@@ -664,7 +664,7 @@ ATReturn  at_open(ATChannel* atch)
 
 /**
  * Starts AT handler on stream "fd'
- * returns 0 on success, -1 on error
+ * returns AT_SUCCESS on success, AT_ERROR_* on error
  */
 ATReturn  at_attach(ATChannel* atch)
 {
