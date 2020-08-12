@@ -28,7 +28,7 @@ extern "C" {
 #include <stdbool.h>
 #include <syslog.h>
 
-/* define AT_DEBUG to send AT traffic to /tmp/radio-at.log" */
+/* define AT_DEBUG to output AT traffic to log" */
 #define AT_DEBUG  0
 
 #if AT_DEBUG
