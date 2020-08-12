@@ -827,6 +827,9 @@ static ATReturn at_send_command_full_nolock (ATChannel* atch, const char *comman
     ATReturn err = 0;
     struct timespec ts;
 
+    if (pp_outResponse) {
+        *pp_outResponse = NULL;
+    }
     if(atch->impl->p_response != NULL) {
         err = AT_ERROR_COMMAND_PENDING;
         goto error;
