@@ -1162,6 +1162,10 @@ ATReturn at_handshake(ATChannel* atch, const char* command, int retryCount, long
  */
 AT_CME_Error at_get_cme_error(const ATResponse *p_response)
 {
+    if (!p_response) {
+        return CME_ERROR_NON_CME;
+    }
+
     int ret;
     int err;
     char *p_cur;
