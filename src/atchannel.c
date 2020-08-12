@@ -89,9 +89,9 @@ static ATReturn writeCtrlZ (ATChannel* atch, const char *s);
 static ATReturn writeline (ATChannel* atch, const char *s);
 static void outputLog(ATChannel* atch, int level, const char* format, ...);
 
-#define NS_PER_S (1000000000)
 static void setTimespecRelative(struct timespec *p_ts, long long msec)
 {
+    const int NS_PER_S = 1000 * 1000 * 1000;
     struct timeval tv;
 
     gettimeofday(&tv, (struct timezone *) NULL);
