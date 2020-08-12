@@ -118,8 +118,6 @@ static void sleepMsec(long long msec)
     } while (err < 0 && errno == EINTR);
 }
 
-
-
 /** add an intermediate response to p_response*/
 static void addIntermediate(ATChannel* atch, const char *line)
 {
@@ -135,7 +133,6 @@ static void addIntermediate(ATChannel* atch, const char *line)
     p_new->p_next = atch->impl->p_response->p_intermediates;
     atch->impl->p_response->p_intermediates = p_new;
 }
-
 
 /**
  * returns true if line is a final response indicating error
@@ -219,7 +216,6 @@ static bool isSMSUnsolicited(const char *line)
     return false;
 }
 
-
 /** assumes commandmutex is held */
 static void handleFinalResponse(ATChannel* atch, const char *line)
 {
@@ -295,7 +291,6 @@ static void processLine(ATChannel* atch, const char *line)
     pthread_mutex_unlock(&atch->impl->commandmutex);
 }
 
-
 /**
  * Returns a pointer to the end of the next line
  * special-cases the "> " SMS prompt
@@ -315,7 +310,6 @@ static char * findNextEOL(char *cur)
     return *cur == '\0' ? NULL : cur;
 }
 
-
 /**
  * Reads a line from the AT channel, returns NULL on timeout.
  * Assumes it has exclusive read access to the FD
@@ -325,7 +319,6 @@ static char * findNextEOL(char *cur)
  * This function exists because as of writing, android libc does not
  * have buffered stdio.
  */
-
 static const char *readline(ATChannel* atch)
 {
     ssize_t count;
@@ -413,7 +406,6 @@ static const char *readline(ATChannel* atch)
     return ret;
 }
 
-
 static void onReaderClosed(ATChannel* atch)
 {
     if (atch->onCloseHandler != NULL && !atch->impl->readerClosed) {
@@ -429,7 +421,6 @@ static void onReaderClosed(ATChannel* atch)
         atch->onCloseHandler(atch);
     }
 }
-
 
 static void *readerLoop(void *arg)
 {
@@ -661,7 +652,6 @@ ATReturn at_open(ATChannel* atch)
     return ret;
 }
 
-
 /**
  * Starts AT handler on stream "fd'
  * returns AT_SUCCESS on success, AT_ERROR_* on error
@@ -819,7 +809,6 @@ static void reverseIntermediates(ATResponse *p_response)
  *
  * timeoutMsec == 0 means infinite timeout
  */
-
 static ATReturn at_send_command_full_nolock(ATChannel* atch, const char *command,
                     ATCommandType type, const char *responsePrefix, const char *smspdu,
                     long long timeoutMsec, ATResponse **pp_outResponse)
@@ -916,7 +905,6 @@ static ATReturn at_send_command_full(ATChannel* atch, const char *command, ATCom
     return err;
 }
 
-
 /**
  * Issue a single normal AT command with no intermediate response expected
  *
@@ -948,7 +936,6 @@ ATReturn at_send_command_timeout(ATChannel* atch, const char *command, long long
 
     return err;
 }
-
 
 ATReturn at_send_command_singleline(ATChannel* atch, const char *command,
                                 const char *responsePrefix,
@@ -987,7 +974,6 @@ ATReturn at_send_command_singleline_timeout(ATChannel* atch, const char *command
     return err;
 }
 
-
 ATReturn at_send_command_numeric(ATChannel* atch, const char *command,
                                 ATResponse **pp_outResponse)
 {
@@ -1021,7 +1007,6 @@ ATReturn at_send_command_numeric_timeout(ATChannel* atch, const char *command,
 
     return err;
 }
-
 
 ATReturn at_send_command_sms(ATChannel* atch, const char *command,
                                 const char *pdu,
@@ -1062,7 +1047,6 @@ ATReturn at_send_command_sms_timeout(ATChannel* atch, const char *command,
     return err;
 }
 
-
 ATReturn at_send_command_multiline(ATChannel* atch, const char *command,
                                 const char *responsePrefix,
                                 ATResponse **pp_outResponse)
@@ -1090,12 +1074,10 @@ ATReturn at_send_command_multiline_timeout(ATChannel* atch, const char *command,
     return err;
 }
 
-
 /**
  * Periodically issue an AT command and wait for a response.
  * Used to ensure channel has start up and is active
  */
-
 ATReturn at_handshake(ATChannel* atch, const char* command, int retryCount, long long timeoutMsec)
 {
     const char* HANDSHAKE_DEFAULT_COMMAND = "ATE0Q0V1";
@@ -1196,7 +1178,6 @@ AT_CME_Error at_get_cme_error(const ATResponse *p_response)
 
     return (AT_CME_Error) ret;
 }
-
 
 static void outputLog(ATChannel* atch, int level, const char* format, ...)
 {
