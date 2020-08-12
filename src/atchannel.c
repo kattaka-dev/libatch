@@ -125,7 +125,7 @@ static void addIntermediate(ATChannel* atch, const char *line)
 {
     ATLine *p_new;
 
-    p_new = (ATLine  *) malloc(sizeof(ATLine));
+    p_new = (ATLine  *) calloc(1, sizeof(ATLine));
 
     p_new->line = strdup(line);
 
