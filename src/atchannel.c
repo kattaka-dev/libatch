@@ -411,11 +411,8 @@ static void onReaderClosed(ATChannel* atch)
     if (atch->onCloseHandler != NULL && !atch->impl->readerClosed) {
 
         pthread_mutex_lock(&atch->impl->commandmutex);
-
         atch->impl->readerClosed = true;
-
         pthread_cond_signal(&atch->impl->commandcond);
-
         pthread_mutex_unlock(&atch->impl->commandmutex);
 
         atch->onCloseHandler(atch);
@@ -499,7 +496,6 @@ static ATReturn writeline(ATChannel* atch, const char *s)
     }
 
     /* the \r  */
-
     do {
         written = write(atch->fd, "\r" , 1);
     } while ((written < 0 && errno == EINTR) || (written == 0));
@@ -539,7 +535,6 @@ static ATReturn writeCtrlZ(ATChannel* atch, const char *s)
     }
 
     /* the ^Z  */
-
     do {
         written = write(atch->fd, "\032" , 1);
     } while ((written < 0 && errno == EINTR) || (written == 0));
@@ -697,7 +692,6 @@ ATReturn at_attach(ATChannel* atch)
         return AT_ERROR_GENERIC;
     }
 
-
     return AT_SUCCESS;
 }
 
@@ -715,11 +709,8 @@ ATReturn at_detach(ATChannel* atch)
     onReaderClosed(atch);
 
     pthread_mutex_lock(&atch->impl->commandmutex);
-
     atch->impl->readerClosed = true;
-
     pthread_cond_signal(&atch->impl->commandcond);
-
     pthread_mutex_unlock(&atch->impl->commandmutex);
 
     free(atch->impl);
