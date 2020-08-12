@@ -820,8 +820,8 @@ static void reverseIntermediates(ATResponse *p_response)
  * timeoutMsec == 0 means infinite timeout
  */
 
-static ATReturn at_send_command_full_nolock(ATChannel* atch, const char *command, ATCommandType type,
-                    const char *responsePrefix, const char *smspdu,
+static ATReturn at_send_command_full_nolock(ATChannel* atch, const char *command,
+                    ATCommandType type, const char *responsePrefix, const char *smspdu,
                     long long timeoutMsec, ATResponse **pp_outResponse)
 {
     ATReturn err = 0;
@@ -931,7 +931,8 @@ ATReturn at_send_command(ATChannel* atch, const char *command, ATResponse **pp_o
     return at_send_command_timeout(atch, command, 0, pp_outResponse);
 }
 
-ATReturn at_send_command_timeout(ATChannel* atch, const char *command, long long timeoutMsec, ATResponse **pp_outResponse)
+ATReturn at_send_command_timeout(ATChannel* atch, const char *command, long long timeoutMsec,
+                                ATResponse **pp_outResponse)
 {
     if (!atch || !command || !pp_outResponse) {
         return AT_ERROR_INVALID_ARGUMENT;
