@@ -115,29 +115,29 @@ ATReturn at_attach(ATChannel* atch);
 ATReturn at_detach(ATChannel* atch);
 ATReturn at_close(ATChannel* atch);
 
-ATReturn at_send_command_singleline (ATChannel* atch,
+ATReturn at_send_command_singleline(ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
                                 ATResponse **pp_outResponse);
-ATReturn at_send_command_singleline_timeout (ATChannel* atch,
+ATReturn at_send_command_singleline_timeout(ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
                                 long long timeoutMsec,
                                 ATResponse **pp_outResponse);
 
-ATReturn at_send_command_numeric (ATChannel* atch,
+ATReturn at_send_command_numeric(ATChannel* atch,
                                 const char *command,
                                 ATResponse **pp_outResponse);
-ATReturn at_send_command_numeric_timeout (ATChannel* atch,
+ATReturn at_send_command_numeric_timeout(ATChannel* atch,
                                 const char *command,
                                 long long timeoutMsec,
                                 ATResponse **pp_outResponse);
 
-ATReturn at_send_command_multiline (ATChannel* atch,
+ATReturn at_send_command_multiline(ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
                                 ATResponse **pp_outResponse);
-ATReturn at_send_command_multiline_timeout (ATChannel* atch,
+ATReturn at_send_command_multiline_timeout(ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
                                 long long timeoutMsec,
@@ -146,13 +146,13 @@ ATReturn at_send_command_multiline_timeout (ATChannel* atch,
 
 ATReturn at_handshake(ATChannel* atch, const char* command, int retryCount, long long timeoutMsec);
 
-ATReturn at_send_command (ATChannel* atch, const char *command, ATResponse **pp_outResponse);
-ATReturn at_send_command_timeout (ATChannel* atch, const char *command, long long timeoutMsec, ATResponse **pp_outResponse);
+ATReturn at_send_command(ATChannel* atch, const char *command, ATResponse **pp_outResponse);
+ATReturn at_send_command_timeout(ATChannel* atch, const char *command, long long timeoutMsec, ATResponse **pp_outResponse);
 
-ATReturn at_send_command_sms (ATChannel* atch, const char *command, const char *pdu,
+ATReturn at_send_command_sms(ATChannel* atch, const char *command, const char *pdu,
                             const char *responsePrefix,
                             ATResponse **pp_outResponse);
-ATReturn at_send_command_sms_timeout (ATChannel* atch, const char *command, const char *pdu,
+ATReturn at_send_command_sms_timeout(ATChannel* atch, const char *command, const char *pdu,
                             const char *responsePrefix,
                             long long timeoutMsec,
                             ATResponse **pp_outResponse);
