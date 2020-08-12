@@ -113,7 +113,7 @@ static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
         char *end;
 
         if (uns)
-            l = strtoul(ret, &end, base);
+            l = (long)strtoul(ret, &end, base);
         else
             l = strtol(ret, &end, base);
 
