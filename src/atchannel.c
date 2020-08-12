@@ -185,7 +185,7 @@ static bool isFinalResponseSuccess(const char *line)
     return false;
 }
 
-#if 0
+#if 0   /* unused function. */
 /**
  * returns true if line is a final response, either  error or success
  * See 27.007 annex B
