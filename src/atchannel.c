@@ -142,7 +142,7 @@ static void addIntermediate(ATChannel* atch, const char *line)
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
-static const char * s_finalResponsesError[] = {
+static const char * const s_finalResponsesError[] = {
     "ERROR",
     "+CMS ERROR:",
     "+CME ERROR:",
@@ -168,7 +168,7 @@ static bool isFinalResponseError(const char *line)
  * See 27.007 annex B
  * WARNING: NO CARRIER and others are sometimes unsolicited
  */
-static const char * s_finalResponsesSuccess[] = {
+static const char * const s_finalResponsesSuccess[] = {
     "OK",
     "CONNECT"       /* some stacks start up data on another channel */
 };
@@ -201,7 +201,7 @@ static bool isFinalResponse(const char *line)
  * returns true if line is the first line in (what will be) a two-line
  * SMS unsolicited response
  */
-static const char * s_smsUnsoliciteds[] = {
+static const char * const s_smsUnsoliciteds[] = {
     "+CMT:",
     "+CDS:",
     "+CBM:"
