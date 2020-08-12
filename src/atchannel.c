@@ -85,8 +85,8 @@ struct ATChannelImpl {
 };
 
 static void onReaderClosed(ATChannel* atch);
-static ATReturn writeCtrlZ (ATChannel* atch, const char *s);
-static ATReturn writeline (ATChannel* atch, const char *s);
+static ATReturn writeCtrlZ(ATChannel* atch, const char *s);
+static ATReturn writeline(ATChannel* atch, const char *s);
 static void outputLog(ATChannel* atch, int level, const char* format, ...);
 
 static void setTimespecRelative(struct timespec *p_ts, long long msec)
@@ -480,7 +480,7 @@ static void *readerLoop(void *arg)
  * This function exists because as of writing, android libc does not
  * have buffered stdio.
  */
-static ATReturn writeline (ATChannel* atch, const char *s)
+static ATReturn writeline(ATChannel* atch, const char *s)
 {
     size_t cur = 0;
     size_t len = strlen(s);
@@ -520,7 +520,7 @@ static ATReturn writeline (ATChannel* atch, const char *s)
     return AT_SUCCESS;
 }
 
-static ATReturn writeCtrlZ (ATChannel* atch, const char *s)
+static ATReturn writeCtrlZ(ATChannel* atch, const char *s)
 {
     size_t cur = 0;
     size_t len = strlen(s);
