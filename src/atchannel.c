@@ -284,12 +284,12 @@ static void processLine(ATChannel* atch, const char *line)
             } else {
                 handleUnsolicited(atch, line);
             }
-        break;
+            break;
 
         default: /* this should never be reached */
             RLOGE(atch, "Unsupported AT command type %d.", atch->impl->type);
             handleUnsolicited(atch, line);
-        break;
+            break;
     }
 
     pthread_mutex_unlock(&atch->impl->commandmutex);
