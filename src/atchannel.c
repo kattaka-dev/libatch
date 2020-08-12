@@ -572,7 +572,7 @@ static void clearPendingCommand(ATChannel* atch)
 }
 
 
-ATReturn  at_open(ATChannel* atch)
+ATReturn at_open(ATChannel* atch)
 {
     if (!atch) {
         return AT_ERROR_INVALID_ARGUMENT;
@@ -666,7 +666,7 @@ ATReturn  at_open(ATChannel* atch)
  * Starts AT handler on stream "fd'
  * returns AT_SUCCESS on success, AT_ERROR_* on error
  */
-ATReturn  at_attach(ATChannel* atch)
+ATReturn at_attach(ATChannel* atch)
 {
     if (!atch) {
         return AT_ERROR_INVALID_ARGUMENT;
