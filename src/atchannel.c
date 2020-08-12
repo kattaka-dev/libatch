@@ -703,7 +703,7 @@ ATReturn at_attach(ATChannel* atch)
     if (ret < 0) {
         free(atch->impl);
         atch->impl = NULL;
-        perror("pthread_create");
+        RLOGE(atch, "Creating reader thread has failed: %s.", strerror(errno));
         return AT_ERROR_GENERIC;
     }
 
