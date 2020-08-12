@@ -270,7 +270,7 @@ static void processLine(ATChannel* atch, const char *line)
             break;
         case SINGLELINE:
             if (atch->impl->p_response->p_intermediates == NULL
-                && strStartsWith (line, atch->impl->responsePrefix)
+                && strStartsWith(line, atch->impl->responsePrefix)
             ) {
                 addIntermediate(atch, line);
             } else {
@@ -279,7 +279,7 @@ static void processLine(ATChannel* atch, const char *line)
             }
             break;
         case MULTILINE:
-            if (strStartsWith (line, atch->impl->responsePrefix)) {
+            if (strStartsWith(line, atch->impl->responsePrefix)) {
                 addIntermediate(atch, line);
             } else {
                 handleUnsolicited(atch, line);
@@ -460,7 +460,7 @@ static void *readerLoop(void *arg)
             }
 
             if (atch->unsolSmsHandler != NULL) {
-                atch->unsolSmsHandler (atch, line1, line2);
+                atch->unsolSmsHandler(atch, line1, line2);
             }
             free(line1);
         } else {
@@ -497,7 +497,7 @@ static ATReturn writeline(ATChannel* atch, const char *s)
     /* the main string */
     while (cur < len) {
         do {
-            written = write (atch->fd, s + cur, len - cur);
+            written = write(atch->fd, s + cur, len - cur);
         } while (written < 0 && errno == EINTR);
 
         if (written < 0) {
@@ -510,7 +510,7 @@ static ATReturn writeline(ATChannel* atch, const char *s)
     /* the \r  */
 
     do {
-        written = write (atch->fd, "\r" , 1);
+        written = write(atch->fd, "\r" , 1);
     } while ((written < 0 && errno == EINTR) || (written == 0));
 
     if (written < 0) {
@@ -537,7 +537,7 @@ static ATReturn writeCtrlZ(ATChannel* atch, const char *s)
     /* the main string */
     while (cur < len) {
         do {
-            written = write (atch->fd, s + cur, len - cur);
+            written = write(atch->fd, s + cur, len - cur);
         } while (written < 0 && errno == EINTR);
 
         if (written < 0) {
@@ -550,7 +550,7 @@ static ATReturn writeCtrlZ(ATChannel* atch, const char *s)
     /* the ^Z  */
 
     do {
-        written = write (atch->fd, "\032" , 1);
+        written = write(atch->fd, "\032" , 1);
     } while ((written < 0 && errno == EINTR) || (written == 0));
 
     if (written < 0) {
@@ -695,7 +695,7 @@ ATReturn at_attach(ATChannel* atch)
     atch->impl->p_response = NULL;
     atch->impl->readerClosed = false;
 
-    pthread_attr_init (&attr);
+    pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     ret = pthread_create(&atch->impl->tid_reader, &attr, readerLoop, atch);
@@ -703,7 +703,7 @@ ATReturn at_attach(ATChannel* atch)
     if (ret < 0) {
         free(atch->impl);
         atch->impl = NULL;
-        perror ("pthread_create");
+        perror("pthread_create");
         return AT_ERROR_GENERIC;
     }
 
@@ -788,8 +788,8 @@ ATReturn at_response_free(ATResponse *p_response)
         free(p_toFree);
     }
 
-    free (p_response->finalResponse);
-    free (p_response);
+    free(p_response->finalResponse);
+    free(p_response);
 
     return AT_SUCCESS;
 }
@@ -835,7 +835,7 @@ static ATReturn at_send_command_full_nolock(ATChannel* atch, const char *command
         goto error;
     }
 
-    err = writeline (atch, command);
+    err = writeline(atch, command);
 
     if (err < 0) {
         goto error;
@@ -942,7 +942,7 @@ ATReturn at_send_command_timeout(ATChannel* atch, const char *command, long long
 
     ATReturn err;
 
-    err = at_send_command_full (atch, command, NO_RESULT, NULL,
+    err = at_send_command_full(atch, command, NO_RESULT, NULL,
                                     NULL, timeoutMsec, pp_outResponse);
 
     return err;
@@ -970,7 +970,7 @@ ATReturn at_send_command_singleline_timeout(ATChannel* atch, const char *command
 
     ATReturn err;
 
-    err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
+    err = at_send_command_full(atch, command, SINGLELINE, responsePrefix,
                                     NULL, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
@@ -1005,7 +1005,7 @@ ATReturn at_send_command_numeric_timeout(ATChannel* atch, const char *command,
 
     ATReturn err;
 
-    err = at_send_command_full (atch, command, NUMERIC, NULL,
+    err = at_send_command_full(atch, command, NUMERIC, NULL,
                                     NULL, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
@@ -1045,7 +1045,7 @@ ATReturn at_send_command_sms_timeout(ATChannel* atch, const char *command,
 
     ATReturn err;
 
-    err = at_send_command_full (atch, command, SINGLELINE, responsePrefix,
+    err = at_send_command_full(atch, command, SINGLELINE, responsePrefix,
                                     pdu, timeoutMsec, pp_outResponse);
 
     if (err == AT_SUCCESS && pp_outResponse != NULL
@@ -1083,7 +1083,7 @@ ATReturn at_send_command_multiline_timeout(ATChannel* atch, const char *command,
 
     ATReturn err;
 
-    err = at_send_command_full (atch, command, MULTILINE, responsePrefix,
+    err = at_send_command_full(atch, command, MULTILINE, responsePrefix,
                                     NULL, timeoutMsec, pp_outResponse);
 
     return err;
@@ -1136,7 +1136,7 @@ ATReturn at_handshake(ATChannel* atch, const char* command, int retryCount, long
 
     for (i = 0 ; i < retryCount; i++) {
         /* some stacks start with verbose off */
-        err = at_send_command_full_nolock (atch, command, NO_RESULT,
+        err = at_send_command_full_nolock(atch, command, NO_RESULT,
                     NULL, NULL, timeoutMsec, NULL);
 
         if (err == 0) {
