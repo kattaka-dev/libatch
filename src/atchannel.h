@@ -131,14 +131,6 @@ ATReturn at_send_command_singleline_timeout(ATChannel* atch,
                                 long long timeoutMsec,
                                 ATResponse **pp_outResponse);
 
-ATReturn at_send_command_numeric(ATChannel* atch,
-                                const char *command,
-                                ATResponse **pp_outResponse);
-ATReturn at_send_command_numeric_timeout(ATChannel* atch,
-                                const char *command,
-                                long long timeoutMsec,
-                                ATResponse **pp_outResponse);
-
 ATReturn at_send_command_multiline(ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
@@ -146,6 +138,14 @@ ATReturn at_send_command_multiline(ATChannel* atch,
 ATReturn at_send_command_multiline_timeout(ATChannel* atch,
                                 const char *command,
                                 const char *responsePrefix,
+                                long long timeoutMsec,
+                                ATResponse **pp_outResponse);
+
+ATReturn at_send_command_numeric(ATChannel* atch,
+                                const char *command,
+                                ATResponse **pp_outResponse);
+ATReturn at_send_command_numeric_timeout(ATChannel* atch,
+                                const char *command,
                                 long long timeoutMsec,
                                 ATResponse **pp_outResponse);
 
