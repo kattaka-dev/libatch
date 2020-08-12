@@ -31,9 +31,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-#define LOG_NDEBUG 0
-#define LOG_TAG "AT"
-
 #include "atchannel.h"
 #include "at_tok.h"
 #include "misc.h"
