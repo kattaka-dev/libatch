@@ -386,7 +386,7 @@ static const char *readline(ATChannel* atch)
             if(count == 0) {
                 RLOGD(atch, "atchannel: EOF reached.");
             } else {
-                RLOGD(atch, "atchannel: read error %s.", strerror(errno));
+                RLOGE(atch, "atchannel: read error %s.", strerror(errno));
             }
             return NULL;
         }
