@@ -1,5 +1,4 @@
-/* //device/system/reference-ril/at_tok.c
-**
+/*
 ** Copyright 2006, The Android Open Source Project
 ** Copyright 2020, The libatch Project
 **
@@ -113,7 +112,7 @@ static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
         char *end;
 
         if (uns)
-            l = strtoul(ret, &end, base);
+            l = (long)strtoul(ret, &end, base);
         else
             l = strtol(ret, &end, base);
 
@@ -183,10 +182,8 @@ int at_tok_nextstr(char **p_cur, char **p_out)
     return 0;
 }
 
-/** returns 1 on "has more tokens" and 0 if no */
-int at_tok_hasmore(char **p_cur)
+/** returns true on "has more tokens" and false if no */
+bool at_tok_hasmore(char **p_cur)
 {
     return ! (*p_cur == NULL || **p_cur == '\0');
 }
-
-
