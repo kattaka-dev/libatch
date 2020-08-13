@@ -1,5 +1,4 @@
-/* //device/system/reference-ril/atchannel.c
-**
+/*
 ** Copyright 2006, The Android Open Source Project
 ** Copyright 2020, The libatch Project
 **
