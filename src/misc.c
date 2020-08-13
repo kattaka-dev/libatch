@@ -29,4 +29,3 @@ bool strStartsWith(const char *line, const char *prefix)
 
     return *prefix == '\0';
 }
-

@@ -188,5 +188,3 @@ int at_tok_hasmore(char **p_cur)
 {
     return ! (*p_cur == NULL || **p_cur == '\0');
 }
-
-
