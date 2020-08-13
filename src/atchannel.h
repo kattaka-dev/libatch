@@ -170,4 +170,4 @@ AT_CME_Error at_get_cme_error(const ATResponse *p_response);
 }
 #endif
 
-#endif /*ATCHANNEL_H*/
+#endif /* ATCHANNEL_H */
