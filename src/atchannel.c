@@ -623,7 +623,7 @@ ATReturn at_open(ATChannel* atch)
     int fd = 0;
     fd = open(atch->path, O_RDWR);
     if (fd < 0) {
-        RLOGE(atch, "opening port %s failed.", atch->path);
+        RLOGE(atch, "opening port %s failed: %s.", atch->path, strerror(errno));
         return AT_ERROR_GENERIC;
     }
     atch->fd = fd;
