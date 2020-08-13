@@ -18,5 +18,5 @@
 
 #include <stdbool.h>
 
-/** returns 1 if line starts with prefix, 0 if it does not */
+/** returns true if line starts with prefix, false if it does not */
 bool strStartsWith(const char *line, const char *prefix);
