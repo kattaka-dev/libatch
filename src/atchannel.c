@@ -62,14 +62,14 @@ typedef enum {
 struct ATChannelImpl {
     pthread_t tid_reader;
 
-/* for input buffering */
+    /* for input buffering */
     char ATBuffer[MAX_AT_RESPONSE+1];
     char *ATBufferCur;
 
-/*
- * for current pending command
- * these are protected by commandmutex
- */
+    /*
+     * for current pending command
+     * these are protected by commandmutex
+     */
     pthread_mutex_t commandmutex;
     pthread_cond_t commandcond;
 
