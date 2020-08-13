@@ -19,9 +19,17 @@
 #ifndef MISC_H
 #define MISC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 
 /** returns true if line starts with prefix, false if it does not */
 bool strStartsWith(const char *line, const char *prefix);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MISC_H */
