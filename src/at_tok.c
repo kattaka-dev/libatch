@@ -183,8 +183,8 @@ int at_tok_nextstr(char **p_cur, char **p_out)
     return 0;
 }
 
-/** returns 1 on "has more tokens" and 0 if no */
-int at_tok_hasmore(char **p_cur)
+/** returns true on "has more tokens" and false if no */
+bool at_tok_hasmore(char **p_cur)
 {
     return ! (*p_cur == NULL || **p_cur == '\0');
 }
