@@ -1,6 +1,6 @@
-/* //device/system/reference-ril/misc.h
-**
+/*
 ** Copyright 2006, The Android Open Source Project
+** Copyright 2020, The libatch Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -14,9 +14,17 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#include <stdbool.h>
 
-/** returns 1 if line starts with prefix, 0 if it does not */
-int strStartsWith(const char *line, const char *prefix);
-/** Returns true iff running this process in an emulator VM */
-bool isInEmulator(void);
+#include "misc.h"
+
+/** returns true if line starts with prefix, false if it does not */
+bool strStartsWith(const char *line, const char *prefix)
+{
+    for ( ; *line != '\0' && *prefix != '\0' ; line++, prefix++) {
+        if (*line != *prefix) {
+            return false;
+        }
+    }
+
+    return *prefix == '\0';
+}

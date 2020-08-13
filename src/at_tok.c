@@ -1,6 +1,6 @@
-/* //device/system/reference-ril/at_tok.c
-**
+/*
 ** Copyright 2006, The Android Open Source Project
+** Copyright 2020, The libatch Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 */
 
 #include "at_tok.h"
+#define _DEFAULT_SOURCE
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -111,7 +112,7 @@ static int at_tok_nextint_base(char **p_cur, int *p_out, int base, int  uns)
         char *end;
 
         if (uns)
-            l = strtoul(ret, &end, base);
+            l = (long)strtoul(ret, &end, base);
         else
             l = strtol(ret, &end, base);
 
@@ -147,7 +148,7 @@ int at_tok_nexthexint(char **p_cur, int *p_out)
     return at_tok_nextint_base(p_cur, p_out, 16, 1);
 }
 
-int at_tok_nextbool(char **p_cur, char *p_out)
+int at_tok_nextbool(char **p_cur, bool *p_out)
 {
     int ret;
     int result;
@@ -164,7 +165,7 @@ int at_tok_nextbool(char **p_cur, char *p_out)
     }
 
     if (p_out != NULL) {
-        *p_out = (char)result;
+        *p_out = !!result;
     }
 
     return ret;
@@ -181,10 +182,8 @@ int at_tok_nextstr(char **p_cur, char **p_out)
     return 0;
 }
 
-/** returns 1 on "has more tokens" and 0 if no */
-int at_tok_hasmore(char **p_cur)
+/** returns true on "has more tokens" and false if no */
+bool at_tok_hasmore(char **p_cur)
 {
     return ! (*p_cur == NULL || **p_cur == '\0');
 }
-
-
