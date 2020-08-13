@@ -16,7 +16,12 @@
 ** limitations under the License.
 */
 
+#ifndef MISC_H
+#define MISC_H
+
 #include <stdbool.h>
 
 /** returns true if line starts with prefix, false if it does not */
 bool strStartsWith(const char *line, const char *prefix);
+
+#endif /* MISC_H */
