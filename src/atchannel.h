@@ -62,10 +62,10 @@ typedef struct ATLine  {
 
 /** Free this with at_response_free() */
 typedef struct {
-    bool success;              /* true if final response indicates
+    bool success;               /* true if final response indicates
                                     success (eg "OK") */
-    char *finalResponse;      /* eg OK, ERROR */
-    ATLine *p_intermediates; /* any intermediate responses */
+    char *finalResponse;        /* eg OK, ERROR */
+    ATLine *p_intermediates;    /* any intermediate responses */
 } ATResponse;
 
 typedef struct ATChannel ATChannel;
