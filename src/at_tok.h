@@ -19,6 +19,10 @@
 #ifndef AT_TOK_H
 #define AT_TOK_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 
 int at_tok_start(char **p_cur);
@@ -29,5 +33,9 @@ int at_tok_nextbool(char **p_cur, bool *p_out);
 int at_tok_nextstr(char **p_cur, char **out);
 
 bool at_tok_hasmore(char **p_cur);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AT_TOK_H */
